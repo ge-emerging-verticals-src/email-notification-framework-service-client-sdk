@@ -1,6 +1,6 @@
 package com.ge.ev.notification.client.requests;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Map;
 import org.apache.http.client.methods.HttpRequestBase;
 
 /**
@@ -8,20 +8,57 @@ import org.apache.http.client.methods.HttpRequestBase;
  */
 public interface NotificationRequest {
 
-  String getRequestUri();
+  /**
+   * 
+   * @return
+   */
+  String getTenantUuid();
 
+  /**
+   *
+   * @return
+   */
   HttpRequestBase getRequest();
 
+  /**
+   *
+   * @return
+   */
   NotificationRequestBody getRequestBody();
 
-  String getBaseUrl();
-
+  /**
+   *
+   * @return
+   */
   String  getVersion();
 
+  /**
+   *
+   * @return
+   */
   String getToken();
 
+  /**
+   *
+   * @return
+   */
+  String getBaseUrl();
+
+  /**
+   *
+   * @return
+   */
+  String getRequestUri();
+
+  /**
+   *
+   * @return
+   */
   String getRequestUrl();
 
-  String toJson() throws JsonProcessingException;
-
+  /**
+   *
+   * @return
+   */
+  Map<String, String> getHeaders();
 }

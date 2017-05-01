@@ -1,4 +1,4 @@
-package com.ge.ev.notification.vcap;
+package com.ge.ev.notification.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ge.ev.notification.client.requests.tenant.GetTenantRequest;
@@ -52,7 +52,7 @@ public class TestTenantRequests {
     UpdateTenantConfigurationRequest updateTenantConfigurationRequest = new UpdateTenantConfigurationRequest.UpdateTenantConfigurationRequestBuilder(BASEURL, VERSION, TENANT_UUID).setToken(TOKEN).setUpdateTenantConfigurationRequestBody(updateTenantConfigurationRequestBody).build();
     assert(updateTenantConfigurationRequest.getTenantUuid().equals(TENANT_UUID));
     assert(updateTenantConfigurationRequest.getRequestUri().equals("/tenants/" + TENANT_UUID));
-    assert(updateTenantConfigurationRequest.getRequest().getMethod().equals("POST"));
+    assert(updateTenantConfigurationRequest.getRequest().getMethod().equals("PUT"));
     assert(updateTenantConfigurationRequest.getRequest().getURI().toString().equals(REQUEST_URL));
     assert(updateTenantConfigurationRequest.getRequestBody() == updateTenantConfigurationRequestBody);
     assert(updateTenantConfigurationRequest.getRequestUrl().equals(REQUEST_URL));

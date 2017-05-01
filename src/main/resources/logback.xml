@@ -4,14 +4,14 @@
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>NOTIFICATION: %d{HH:mm:ss.SSS} %level | %thread | %-55logger{55} | %msg %n</pattern>
+      <pattern>NOTIFICATION CLIENT SDK: %d{HH:mm:ss.SSS} %level | %thread | %-55logger{55} | %msg %n</pattern>
     </encoder>
   </appender>
 
-  <logger name="com.ge" level="${LOGBACK_DEBUGLEVEL}"/>
-  <logger name="org.springframework" level="INFO"/>
+  <logger name="com.ge" level="ERROR"/>
+  <logger name="org.apache" level="ERROR"/>
 
-  <root level="${LOGBACK_DEBUGLEVEL}">          
+  <root level="ERROR">
     <appender-ref ref="STDOUT" />
   </root>  
   

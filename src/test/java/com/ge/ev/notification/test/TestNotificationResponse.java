@@ -1,4 +1,4 @@
-package com.ge.ev.notification.vcap;
+package com.ge.ev.notification.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ge.ev.notification.client.response.NotificationServiceResponse;
@@ -14,8 +14,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class TestNotificationResponse {
 
-  private static final String json = "{\"payload\":{},\"uuid\":\"7e4d5743-1f02-48dd-b3d2-678ee615270a\",\"status\":1000,\"message\":\"OK\",\"timestamp\":1493407148536}";
-
+  private static final String json = "{\"timestamp\":1493407148536,\"message\":\"OK\",\"status\":1000,\"payload\":\"\",\"uuid\":\"7e4d5743-1f02-48dd-b3d2-678ee615270a\"}";
   @Test
   public void TestNotificationResponseTest()
   {
@@ -28,10 +27,18 @@ public class TestNotificationResponse {
       assert(notificationServiceResponse.getStatus() == 1000L);
       assert(notificationServiceResponse.getMessage().equals("OK"));
       assert(notificationServiceResponse.getTimestamp() == 1493407148536L);
+      
+      assert(notificationServiceResponse.toJson().equals(json));
 
+      NotificationServiceResponse notificationServiceResponse2 = NotificationServiceResponse.toObject(json, NotificationServiceResponse.class);
+      assert(notificationServiceResponse2.getUuid().equals("7e4d5743-1f02-48dd-b3d2-678ee615270a"));
+      assert(notificationServiceResponse2.getStatus() == 1000L);
+      assert(notificationServiceResponse2.getMessage().equals("OK"));
+      assert(notificationServiceResponse2.getTimestamp() == 1493407148536L);
     } catch (IOException e) {
       e.printStackTrace();
     }
+
 
   }
 

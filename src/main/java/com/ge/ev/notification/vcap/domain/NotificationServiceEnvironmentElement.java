@@ -75,6 +75,6 @@ public class NotificationServiceEnvironmentElement implements Serializable  {
   @Override
   public String toString()
   {
-    return "ClassPojo [tags = "+tags+", plan = "+plan+", name = "+name+", credentials = "+credentials+", label = "+label+"]";
+    return "NotificationServiceEnvironmentElement [tags = "+tags+", plan = "+plan+", name = "+name+", credentials = "+credentials+", label = "+label+"]";
   }
 }

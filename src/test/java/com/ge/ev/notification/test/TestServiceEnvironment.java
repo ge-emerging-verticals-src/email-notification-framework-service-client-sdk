@@ -1,5 +1,6 @@
-package com.ge.ev.notification.vcap;
+package com.ge.ev.notification.test;
 
+import com.ge.ev.notification.vcap.ServiceEnvironment;
 import com.ge.ev.notification.vcap.domain.NotificationServiceEnvironmentElement;
 import com.ge.ev.notification.vcap.domain.NotificationServiceVcapEnvironmentElementCredentials;
 import com.ge.ev.notification.vcap.exceptions.ServiceEnvironmentException;

@@ -72,7 +72,7 @@ public class NotificationServiceVcapEnvironmentElementCredentials implements Ser
   @Override
   public String toString()
   {
-    return "ClassPojo [zoneOauthScope = "+zoneOauthScope+", tenantUuid = "+tenantUuid+", catalogUri = "+catalogUri+", version = "+version+", trustedIssuerIds = "+trustedIssuerIds+"]";
+    return "NotificationServiceVcapEnvironmentElementCredentials [zoneOauthScope = "+zoneOauthScope+", tenantUuid = "+tenantUuid+", catalogUri = "+catalogUri+", version = "+version+", trustedIssuerIds = "+trustedIssuerIds+"]";
   }
   
 

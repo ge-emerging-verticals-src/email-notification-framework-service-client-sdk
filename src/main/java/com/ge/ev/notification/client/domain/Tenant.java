@@ -1,77 +1,63 @@
 package com.ge.ev.notification.client.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import com.ge.ev.notification.client.json.JsonObject;
 
 /**
  * Created by 212391398 on 4/18/17.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Tenant implements Serializable{
+public class Tenant extends JsonObject{
 
-  private String timestamp;
-
-  private String id;
-
-  @JsonProperty("trusted_issuers")
+  private Long timestamp;
+  private Long id;
+  private String successWebhook;
+  private Long monthlyLimit;
+  private String bindingId;
   private String trustedIssuers;
-
+  private Long dailyLimit;
+  private String planId;
   private String uuid;
+  private String failWebhook;
 
-
-  @JsonProperty("event_count")
-  private String eventCount;
-
-  public String getTimestamp() {
+  public Long getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(String timestamp) {
-    this.timestamp = timestamp;
-  }
-
-  public String getId() {
+  public Long getId() {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public String getSuccessWebhook() {
+    return successWebhook;
+  }
+
+  public Long getMonthlyLimit() {
+    return monthlyLimit;
+  }
+
+  public String getBindingId() {
+    return bindingId;
   }
 
   public String getTrustedIssuers() {
     return trustedIssuers;
   }
 
-  public void setTrustedIssuers(String trustedIssuers) {
-    this.trustedIssuers = trustedIssuers;
+  public Long getDailyLimit() {
+    return dailyLimit;
+  }
+
+  public String getPlanId() {
+    return planId;
   }
 
   public String getUuid() {
     return uuid;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public String getEventCount() {
-    return eventCount;
-  }
-
-  public void setEventCount(String eventCount) {
-    this.eventCount = eventCount;
-  }
-
-  @Override
-  public String toString() {
-    return "Tenant{" +
-        "timestamp='" + timestamp + '\'' +
-        ", id='" + id + '\'' +
-        ", trustedIssuers='" + trustedIssuers + '\'' +
-        ", uuid='" + uuid + '\'' +
-        ", eventCount='" + eventCount + '\'' +
-        '}';
+  public String getFailWebhook() {
+    return failWebhook;
   }
 }

@@ -1,21 +1,21 @@
 package com.ge.ev.notification.client.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.LinkedHashMap;
+import com.ge.ev.notification.client.json.JsonObject;
 
 /**
  * Created by 212391398 on 4/28/17.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NotificationServiceResponse {
+public class NotificationServiceResponse extends JsonObject {
     private Long timestamp;
 
     private String message;
 
     private Long status;
 
-    private LinkedHashMap<String, Object> payload;
+    private Object payload;
 
     private String uuid;
 
@@ -34,7 +34,7 @@ public class NotificationServiceResponse {
       return status;
     }
   
-    public LinkedHashMap<String, Object> getPayload ()
+    public Object getPayload ()
     {
       return payload;
     }

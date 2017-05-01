@@ -1,6 +1,5 @@
 package com.ge.ev.notification.client.requests.tenant;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.http.client.methods.HttpGet;
 
 /**
@@ -8,18 +7,13 @@ import org.apache.http.client.methods.HttpGet;
  */
 public class GetTenantRequest extends TenantRequest {
 
-  private GetTenantRequest(TenantRequestBuilder builder)
+  private GetTenantRequest(GetTenantRequestBuilder builder)
   {
     super(builder);
     super.requestBase = new HttpGet(getRequestUrl());
   }
 
-  @Override
-  public String toJson() throws JsonProcessingException {
-    return super.mapper.writeValueAsString(this);
-  }
-
-  public static class GetTenantRequestBuilder extends TenantRequestBuilder
+  public static class GetTenantRequestBuilder extends NotificationRequestBuilder
   {
     public GetTenantRequestBuilder( String baseUrl, String version, String tenantUuid)
     {
