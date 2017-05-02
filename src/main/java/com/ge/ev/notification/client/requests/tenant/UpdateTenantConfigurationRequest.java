@@ -28,30 +28,7 @@ public class UpdateTenantConfigurationRequest extends TenantRequest {
 
     public UpdateTenantConfigurationRequestBuilder(String baseUrl, String version, String tenantUuid)
     {
-      setBaseUrl(baseUrl);
-      setTenantUuid(tenantUuid);
-      setVersion(version);
-    }
-
-
-    public UpdateTenantConfigurationRequestBuilder setTenantUuid(String tenantUuid) {
-      super.tenantUuid = tenantUuid;
-      return this;
-    }
-
-    public UpdateTenantConfigurationRequestBuilder setBaseUrl(String baseUrl) {
-      this.baseUrl = baseUrl;
-      return this;
-    }
-
-    public UpdateTenantConfigurationRequestBuilder setVersion(String version) {
-      this.version = version;
-      return this;
-    }
-
-    public UpdateTenantConfigurationRequestBuilder setToken(String token) {
-      this.token = token;
-      return this;
+      super(baseUrl, version, tenantUuid);
     }
 
     public UpdateTenantConfigurationRequestBody getUpdateTenantConfigurationRequestBody() {
@@ -61,6 +38,11 @@ public class UpdateTenantConfigurationRequest extends TenantRequest {
     public UpdateTenantConfigurationRequestBuilder setUpdateTenantConfigurationRequestBody(
         UpdateTenantConfigurationRequestBody updateTenantConfigurationRequestBody) {
       this.updateTenantConfigurationRequestBody = updateTenantConfigurationRequestBody;
+      return this;
+    }
+
+    public UpdateTenantConfigurationRequestBuilder setToken(String token) {
+      this.token = token;
       return this;
     }
 

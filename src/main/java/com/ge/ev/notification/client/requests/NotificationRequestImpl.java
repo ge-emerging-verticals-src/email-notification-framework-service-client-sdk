@@ -1,6 +1,8 @@
 package com.ge.ev.notification.client.requests;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpRequestBase;
 
 /**
@@ -21,6 +23,20 @@ public class NotificationRequestImpl implements NotificationRequest{
   protected Map<String, String> headers;
   protected NotificationRequestBody notificationRequestBody;
   protected HttpRequestBase requestBase;
+
+  protected NotificationRequestImpl(NotificationRequestBuilder notificationRequestBuilder)
+  {
+    this.baseUrl = notificationRequestBuilder.getBaseUrl();
+    this.version = notificationRequestBuilder.getVersion();
+    this.tenantUuid = notificationRequestBuilder.getTenantUuid();
+    this.token = notificationRequestBuilder.getToken();
+
+    this.headers = new LinkedHashMap<>();
+    this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
+    StringBuilder authString = new StringBuilder("bearer ");
+    authString.append(this.token);
+    this.headers.put(HttpHeaders.AUTHORIZATION, authString.toString());
+  }
 
   @Override
   public String getTenantUuid() {
@@ -89,7 +105,12 @@ public class NotificationRequestImpl implements NotificationRequest{
     protected String version;
     protected String token;
 
-    public NotificationRequestBuilder() {}
+    public NotificationRequestBuilder( String baseUrl, String version, String tenantUuid  )
+    {
+      setBaseUrl(baseUrl);
+      setVersion(version);
+      setTenantUuid(tenantUuid);
+    }
 
     public String getTenantUuid() {
       return tenantUuid;
@@ -105,6 +126,21 @@ public class NotificationRequestImpl implements NotificationRequest{
 
     public String getToken() {
       return token;
+    }
+
+    protected NotificationRequestBuilder setTenantUuid(String tenantUuid) {
+      this.tenantUuid = tenantUuid;
+      return this;
+    }
+
+    protected NotificationRequestBuilder setBaseUrl(String baseUrl) {
+      this.baseUrl = baseUrl;
+      return this;
+    }
+
+    protected NotificationRequestBuilder setVersion(String version) {
+      this.version = version;
+      return this;
     }
   }
 

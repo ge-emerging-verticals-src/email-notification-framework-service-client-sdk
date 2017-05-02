@@ -14,26 +14,9 @@ public class GetConfigurationsRequest extends ConfigurationsRequest {
 
   public static class GetConfigurationsRequestBuilder extends ConfigurationsRequestBuilder
   {
-    public GetConfigurationsRequestBuilder( String baseUrl, String version, String tenantUuid)
+    public GetConfigurationsRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
-      setBaseUrl(baseUrl);
-      setVersion(version);
-      setTenantUuid(tenantUuid);
-    }
-
-    public GetConfigurationsRequestBuilder setTenantUuid(String tenantUuid) {
-      super.tenantUuid = tenantUuid;
-      return this;
-    }
-
-    public GetConfigurationsRequestBuilder setBaseUrl(String baseUrl) {
-      this.baseUrl = baseUrl;
-      return this;
-    }
-
-    public GetConfigurationsRequestBuilder setVersion(String version) {
-      this.version = version;
-      return this;
+      super(baseUrl, version, tenantUuid);
     }
 
     public GetConfigurationsRequestBuilder setToken(String token) {

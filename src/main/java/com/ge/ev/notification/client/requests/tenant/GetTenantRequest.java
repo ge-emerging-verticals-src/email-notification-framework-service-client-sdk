@@ -15,26 +15,9 @@ public class GetTenantRequest extends TenantRequest {
 
   public static class GetTenantRequestBuilder extends NotificationRequestBuilder
   {
-    public GetTenantRequestBuilder( String baseUrl, String version, String tenantUuid)
+    public GetTenantRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
-      setBaseUrl(baseUrl);
-      setVersion(version);
-      setTenantUuid(tenantUuid);
-    }
-
-    public GetTenantRequestBuilder setTenantUuid(String tenantUuid) {
-      super.tenantUuid = tenantUuid;
-      return this;
-    }
-
-    public GetTenantRequestBuilder setBaseUrl(String baseUrl) {
-      this.baseUrl = baseUrl;
-      return this;
-    }
-
-    public GetTenantRequestBuilder setVersion(String version) {
-      this.version = version;
-      return this;
+      super(baseUrl, version, tenantUuid);
     }
 
     public GetTenantRequestBuilder setToken(String token) {

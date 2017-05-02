@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.ge.ev.notification.client.domain.Configuration;
 import com.ge.ev.notification.client.json.JsonObject;
+import com.ge.ev.notification.client.requests.NotificationRequestBody;
 
 /**
  * Created by 212391398 on 5/1/17.
  */
 @JsonInclude(Include.NON_NULL)
-public class ConfigurationRequestBody extends JsonObject {
+public class ConfigurationRequestBody extends JsonObject implements NotificationRequestBody {
 
   private Configuration configuration;
 
@@ -25,6 +26,10 @@ public class ConfigurationRequestBody extends JsonObject {
     configuration.setSmtpAuth(configurationRequestBodyBuilder.getSmtpAuth());
     configuration.setSmtpStarttlsEnable(configurationRequestBodyBuilder.getSmtpStarttlsEnable());
     configuration.setProtocol(configurationRequestBodyBuilder.getProtocol());
+  }
+
+  public Configuration getConfiguration() {
+    return configuration;
   }
 
   @Override

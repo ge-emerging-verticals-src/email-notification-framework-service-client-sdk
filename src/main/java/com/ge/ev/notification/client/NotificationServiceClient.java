@@ -4,13 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ge.ev.notification.NotificationService;
 import com.ge.ev.notification.client.domain.Configuration;
 import com.ge.ev.notification.client.domain.Tenant;
+import com.ge.ev.notification.client.exceptions.NotificationClientException;
+import com.ge.ev.notification.client.exceptions.RequestException;
 import com.ge.ev.notification.client.requests.NotificationRequest;
+import com.ge.ev.notification.client.requests.configuration.ConfigurationRequestBody;
+import com.ge.ev.notification.client.requests.configuration.ConfigurationsRequest;
+import com.ge.ev.notification.client.requests.configuration.CreateConfigurationRequest;
+import com.ge.ev.notification.client.requests.configuration.DeleteConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.GetConfigurationsRequest;
+import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationRequest;
 import com.ge.ev.notification.client.requests.tenant.GetTenantRequest;
 import com.ge.ev.notification.client.requests.tenant.TenantRequest;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequest;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequestBody;
 import com.ge.ev.notification.client.response.NotificationServiceResponse;
+import com.ge.ev.notification.status.NotificationServiceResponseStatus;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +27,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -57,37 +66,49 @@ public class NotificationServiceClient implements NotificationService {
     return baseUrl;
   }
 
-  public NotificationServiceResponse sendRequest(NotificationRequest notificationRequest) throws IOException
+  public NotificationServiceResponse sendRequest(NotificationRequest notificationRequest) throws IOException, RequestException
   {
     HttpClient client = HttpClientBuilder.create().build();
     NotificationServiceResponse notificationServiceResponse = null;
-    try {
-      HttpRequestBase requestBase = notificationRequest.getRequest();
+    HttpRequestBase requestBase = notificationRequest.getRequest();
 
-      _logger.debug(requestBase.getURI().toURL().toString());
+    _logger.debug(requestBase.getURI().toURL().toString());
 
-      HttpResponse response = client.execute(requestBase);
+    HttpResponse response = client.execute(requestBase);
 
-      if (response != null)
+    if (response != null) {
+
+      _logger.debug( response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
+
+      if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
       {
-        HttpEntity entity = response.getEntity();
-        if (entity != null)
-        {
-          BufferedInputStream bufferedInputStream = new BufferedInputStream(response.getEntity().getContent());
-          String json = IOUtils.toString(bufferedInputStream);
-          notificationServiceResponse = mapper.readValue(json, NotificationServiceResponse.class);
-          bufferedInputStream.close();
-        }
+          HttpEntity entity = response.getEntity();
+          if (entity != null) {
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                response.getEntity().getContent());
+            String json = IOUtils.toString(bufferedInputStream);
+            notificationServiceResponse = mapper.readValue(json, NotificationServiceResponse.class);
+            bufferedInputStream.close();
+
+            _logger.debug( notificationServiceResponse.toJson() );
+
+            if (!notificationServiceResponse.getStatus().equals(NotificationServiceResponseStatus.Ok.getValue()))
+            {
+              throw new RequestException(notificationServiceResponse.getMessage());
+            }
+          }
+      } else {
+        throw new RequestException(
+            "Service has returned " + response.getStatusLine().getStatusCode() + ", " + response
+                .getStatusLine().getReasonPhrase());
       }
-    } catch (Exception ex){
-      ex.printStackTrace();
     }
 
     return notificationServiceResponse;
   }
 
   @Override
-  public Tenant getTenant(String token) throws IOException {
+  public Tenant getTenant(String token) throws IOException, RequestException {
 
     GetTenantRequest getTenantRequest = new GetTenantRequest.GetTenantRequestBuilder(this.baseUrl, this.version, this.tenantUuid).
         setToken(token).
@@ -97,7 +118,8 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public Tenant updateTenant(String token, UpdateTenantConfigurationRequestBody updateTenantConfigurationRequestBody) throws IOException {
+  public Tenant updateTenant(String token, UpdateTenantConfigurationRequestBody updateTenantConfigurationRequestBody)
+      throws IOException, RequestException {
 
     UpdateTenantConfigurationRequest updateTenantConfigurationRequest = new UpdateTenantConfigurationRequest.UpdateTenantConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setUpdateTenantConfigurationRequestBody(updateTenantConfigurationRequestBody)
@@ -108,14 +130,65 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Configuration> getConfigurations(String token, String configurationUuid) throws IOException {
+  public List<Configuration> getConfigurations(String token, String configurationUuid)
+      throws IOException, RequestException {
 
-    ArrayList<Configuration> configurations = new ArrayList<>();
-
-    GetConfigurationsRequest configurationsRequest = new GetConfigurationsRequest.GetConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+    GetConfigurationsRequest getConfigurationsRequest = new GetConfigurationsRequest.GetConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setConfigurationUuid(configurationUuid)
         .setToken(token)
         .build();
+
+    return sendConfigurationRequest(getConfigurationsRequest);
+  }
+
+  @Override
+  public List<Configuration> createConfiguration(String token, ConfigurationRequestBody configurationRequestBody)  throws IOException, RequestException {
+    CreateConfigurationRequest createConfigurationRequest = new CreateConfigurationRequest.CreateConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .addConfigurationRequestBody(configurationRequestBody)
+        .setToken(token)
+        .build();
+
+    if (createConfigurationRequest.getConfigurationRequestBodies() != null) {
+      for (ConfigurationRequestBody configurationRequestBody1 : createConfigurationRequest.getConfigurationRequestBodies()) {
+        _logger.debug(configurationRequestBody1.toJson());
+      }
+    }
+
+
+
+    return sendConfigurationRequest(createConfigurationRequest);
+  }
+
+  @Override
+  public List<Configuration> updateConfiguration(String token, String configurationUuid, ConfigurationRequestBody configurationRequestBody)  throws IOException, RequestException {
+    UpdateConfigurationRequest updateConfigurationRequest = new UpdateConfigurationRequest.UpdateConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setConfigurationUuid(configurationUuid)
+        .setConfigurationRequestBody(configurationRequestBody)
+        .setToken(token)
+        .build();
+
+    return sendConfigurationRequest(updateConfigurationRequest);
+  }
+
+  @Override
+  public List<Configuration> deleteConfiguration(String token, String configurationUuid) throws IOException, RequestException, NotificationClientException {
+
+    DeleteConfigurationRequest deleteConfigurationRequest = new DeleteConfigurationRequest.DeleteConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setConfigurationUuid(configurationUuid)
+        .setToken(token)
+        .build();
+
+    return sendConfigurationRequest(deleteConfigurationRequest);
+  }
+
+  private List<Configuration> sendConfigurationRequest(ConfigurationsRequest configurationsRequest)
+      throws IOException, RequestException {
+    ArrayList<Configuration> configurations = new ArrayList<>();
+
+
+    if (configurationsRequest.getRequestBody() != null) {
+      _logger.debug(configurationsRequest.getRequestBody().toJson());
+    }
 
     NotificationServiceResponse notificationServiceResponse = sendRequest(configurationsRequest);
 
@@ -123,34 +196,31 @@ public class NotificationServiceClient implements NotificationService {
 
     if (notificationServiceResponse != null)
     {
-      ArrayList<LinkedHashMap<String,Object>> payload = (ArrayList<LinkedHashMap<String, Object>>) notificationServiceResponse.getPayload();
-
-      for (LinkedHashMap<String, Object> map : payload)
-      {
-        configurations.add(Configuration.toObject(map, Configuration.class));
+      try {
+        ArrayList<LinkedHashMap<String, Object>> hashMaps = (ArrayList<LinkedHashMap<String, Object>>) notificationServiceResponse
+            .getPayload();
+        if (hashMaps != null) {
+          for (LinkedHashMap<String, Object> map : hashMaps) {
+            configurations.add(Configuration.toObject(map, Configuration.class));
+          }
+        }
       }
+      catch (ClassCastException ex) {}
+      try{
+        configurations.add(Configuration.toObject((LinkedHashMap) notificationServiceResponse.getPayload(), Configuration.class));
+      }
+      catch (ClassCastException ex) {}
     }
 
     return configurations;
   }
 
-  @Override
-  public List<Configuration> createConfiguration(String token) {
-    return null;
-  }
-
-  @Override
-  public List<Configuration> updateConfiguration(String token) {
-    return null;
-  }
-
-  @Override
-  public Configuration deleteConfiguration(String token) {
-    return null;
-  }
-
-  private Tenant sendTenantRequest(TenantRequest tenantRequest) throws IOException {
+  private Tenant sendTenantRequest(TenantRequest tenantRequest) throws IOException, RequestException {
     Tenant tenant = null;
+
+    if (tenantRequest.getRequestBody() != null) {
+      _logger.debug(tenantRequest.getRequestBody().toJson());
+    }
 
     NotificationServiceResponse notificationServiceResponse = sendRequest(tenantRequest);
 

@@ -1,8 +1,10 @@
 package com.ge.ev.notification.test;
 
 import com.ge.ev.notification.client.requests.configuration.ConfigurationRequestBody;
+import com.ge.ev.notification.client.requests.configuration.CreateConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.DeleteConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.GetConfigurationsRequest;
+import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationRequest;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,7 @@ public class TestConfigurationRequests {
   private static final String RETURN_PATH = "return.path";
 
   private static final String CONFIGURATION_REQUEST_BODY_JSON = "{\"protocol\":\"smtp\",\"host\":\"smtp.mail.notification.ge.com\",\"port\":587,\"smtpAuth\":true,\"smtpStarttlsEnable\":true,\"mailFrom\":\"test@notification.ge.com\",\"mailUsername\":\"test\",\"mailPassword\":\"test123\",\"mailReturnPath\":\"return.path\"}";
+  private static final String CONFIGURATION_REQUEST_BODY_ARRAY_JSON = "[{\"protocol\":\"smtp\",\"host\":\"smtp.mail.notification.ge.com\",\"port\":587,\"smtpAuth\":true,\"smtpStarttlsEnable\":true,\"mailFrom\":\"test@notification.ge.com\",\"mailUsername\":\"test\",\"mailPassword\":\"test123\",\"mailReturnPath\":\"return.path\"}]";
 
   @Test
   public void GetConfigurationRequestBuilderTest() {
@@ -99,6 +102,87 @@ public class TestConfigurationRequests {
     assert(deleteConfigurationRequest2.getToken().equals(TOKEN));
   }
 
+  @Test
+  public void CreateConfigurationRequestBuilderTest() {
+    ConfigurationRequestBody configurationRequestBody = new ConfigurationRequestBody.ConfigurationRequestBodyBuilder()
+        .setHost(HOST)
+        .setMailFrom(MAIL_FROM)
+        .setMailPassword(MAIL_PASSWORD)
+        .setMailReturnPath(RETURN_PATH)
+        .setMailUsername(MAIL_USERNAME)
+        .setPort(PORT)
+        .setProtocol(PROTOCOL)
+        .setSmtpAuth(SMTP_AUTH)
+        .setSmtpStarttlsEnable(SMTP_START_TLS_ENABLE)
+        .build();
+
+    assert(configurationRequestBody.toJson().equals(CONFIGURATION_REQUEST_BODY_JSON));
+
+
+    CreateConfigurationRequest createConfigurationRequest = new CreateConfigurationRequest.CreateConfigurationRequestBuilder(BASEURL, VERSION, TENANT_UUID)
+        .addConfigurationRequestBody(configurationRequestBody)
+//        .addConfigurationRequestBody(configurationRequestBody)
+        .setToken(TOKEN)
+        .build();
+
+    assert(createConfigurationRequest.getTenantUuid().equals(TENANT_UUID));
+    assert(createConfigurationRequest.getRequestUri().equals("/tenants/" + TENANT_UUID + "/configurations/"));
+    assert(createConfigurationRequest.getRequest().getMethod().equals("POST"));
+    assert(createConfigurationRequest.getRequest().getURI().toString().equals(BASE_REQUEST_URL));
+    assert(createConfigurationRequest.getRequestUrl().equals(BASE_REQUEST_URL));
+    assert(createConfigurationRequest.getToken().equals(TOKEN));
+
+    System.out.println( createConfigurationRequest.getConfigurationRequestBodies().toJson() );
+//    assert(createConfigurationRequest.toJson().equals(CONFIGURATION_REQUEST_BODY_ARRAY_JSON));
+    assert(createConfigurationRequest.getConfigurationRequestBodies().get(0).toJson().equals(CONFIGURATION_REQUEST_BODY_JSON));
+
+    HttpRequestBase requestBase = createConfigurationRequest.getRequest();
+
+    assert(requestBase!=null);
+    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    
+  }
+
+  @Test
+  public void UpdateConfigurationRequestBuilderTest() {
+    ConfigurationRequestBody configurationRequestBody = new ConfigurationRequestBody.ConfigurationRequestBodyBuilder()
+        .setHost(HOST)
+        .setMailFrom(MAIL_FROM)
+        .setMailPassword(MAIL_PASSWORD)
+        .setMailReturnPath(RETURN_PATH)
+        .setMailUsername(MAIL_USERNAME)
+        .setPort(PORT)
+        .setProtocol(PROTOCOL)
+        .setSmtpAuth(SMTP_AUTH)
+        .setSmtpStarttlsEnable(SMTP_START_TLS_ENABLE)
+        .build();
+
+    assert(configurationRequestBody.toJson().equals(CONFIGURATION_REQUEST_BODY_JSON));
+
+    UpdateConfigurationRequest updateConfigurationRequest = new UpdateConfigurationRequest.UpdateConfigurationRequestBuilder(BASEURL, VERSION, TENANT_UUID)
+        .setConfigurationRequestBody(configurationRequestBody)
+        .setToken(TOKEN)
+        .build();
+
+    assert(updateConfigurationRequest.getTenantUuid().equals(TENANT_UUID));
+    assert(updateConfigurationRequest.getRequestUri().equals("/tenants/" + TENANT_UUID + "/configurations/"));
+    assert(updateConfigurationRequest.getRequest().getMethod().equals("PUT"));
+    assert(updateConfigurationRequest.getRequest().getURI().toString().equals(BASE_REQUEST_URL));
+    assert(updateConfigurationRequest.getRequestUrl().equals(BASE_REQUEST_URL));
+    assert(updateConfigurationRequest.getToken().equals(TOKEN));
+    assert(updateConfigurationRequest.getRequestBody().toJson().equals(CONFIGURATION_REQUEST_BODY_JSON));
+
+    HttpRequestBase requestBase = updateConfigurationRequest.getRequest();
+
+    assert(requestBase!=null);
+    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+  }
 
   @Test
   public void ConfigurationRequestBodyTest()

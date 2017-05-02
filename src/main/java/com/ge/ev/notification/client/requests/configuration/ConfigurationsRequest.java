@@ -1,8 +1,6 @@
 package com.ge.ev.notification.client.requests.configuration;
 
 import com.ge.ev.notification.client.requests.NotificationRequestImpl;
-import java.util.LinkedHashMap;
-import org.apache.http.HttpHeaders;
 
 /**
  * Created by 212391398 on 5/1/17.
@@ -16,17 +14,8 @@ public class ConfigurationsRequest extends NotificationRequestImpl {
 
   protected ConfigurationsRequest(ConfigurationsRequestBuilder builder)
   {
-    this.baseUrl = builder.getBaseUrl();
-    this.version = builder.getVersion();
-    this.tenantUuid = builder.getTenantUuid();
-    this.token = builder.getToken();
+    super(builder);
     this.configurationUuid = builder.getConfigurationUuid() != null ? builder.getConfigurationUuid() : "";
-
-    this.headers = new LinkedHashMap<>();
-    this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
-    StringBuilder authString = new StringBuilder("bearer ");
-    authString.append(this.token);
-    this.headers.put(HttpHeaders.AUTHORIZATION, authString.toString());
   }
 
   @Override
@@ -50,30 +39,14 @@ public class ConfigurationsRequest extends NotificationRequestImpl {
 
   protected static class ConfigurationsRequestBuilder extends NotificationRequestBuilder
   {
-    protected String tenantUuid;
-    protected String baseUrl;
-    protected String version;
-    protected String token;
     protected String configurationUuid;
 
-    public ConfigurationsRequestBuilder() {}
-
-    public String getTenantUuid() {
-      return tenantUuid;
+    public ConfigurationsRequestBuilder( String baseUrl, String version, String tenantUuid )
+    {
+      super(baseUrl, version, tenantUuid);
     }
 
-    public String getBaseUrl() {
-      return baseUrl;
-    }
+    public String getConfigurationUuid() { return configurationUuid; }
 
-    public String getVersion() {
-      return version;
-    }
-
-    public String getToken() {
-      return token;
-    }
-
-    public String getConfigurationUuid() { return configurationUuid;}
   }
 }
