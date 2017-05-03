@@ -12,11 +12,11 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestTenant {
+public class TenantTest {
 
   private static final String json = "{\"timestamp\":1491854770254,\"id\":1,\"successWebhook\":\"https://notification-webhook.run.aws-usw02-pr.ice.predix.io/success\",\"monthlyLimit\":2000000,\"bindingId\":\"35e85d72-828e-464a-ae91-8aa70b48b2cc\",\"trustedIssuers\":\"https://predix-uaa.run.aws-usw02-pr.ice.predix.io/oauth/token\",\"dailyLimit\":10000,\"planId\":\"668cbf71-404a-4ddb-9da3-45c8cdac5f3f\",\"uuid\":\"c96d9e70-91a7-4f54-ab4d-28f636e3f590\",\"failWebhook\":\"https://notification-webhook.run.aws-usw02-pr.ice.predix.io/fail\"}";
   @Test
-  public void TenantBaseTest() {
+  public void TestTenantBase() {
 
     Tenant tenant = Tenant.toObject(json, Tenant.class);
 

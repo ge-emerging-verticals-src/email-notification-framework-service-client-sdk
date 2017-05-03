@@ -2,6 +2,7 @@ package com.ge.ev.notification.client.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ge.ev.notification.client.json.JsonObject;
+import java.util.Map;
 
 /**
  * Created by 212391398 on 4/18/17.
@@ -59,5 +60,10 @@ public class Tenant extends JsonObject{
 
   public String getFailWebhook() {
     return failWebhook;
+  }
+
+  public static Tenant toObject(Map<String, Object> map)
+  {
+    return JsonObject.toObject(map, Tenant.class);
   }
 }

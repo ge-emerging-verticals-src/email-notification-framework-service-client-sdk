@@ -13,7 +13,7 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestServiceEnvironment
+public class ServiceEnvironmentTest
 {
 
   private static final String json = "{\n"
@@ -49,7 +49,7 @@ public class TestServiceEnvironment
       + "}";
 
   @Test
-  public void EnvironmentTest()
+  public void TestServiceEnvironment()
   {
 
     //null test

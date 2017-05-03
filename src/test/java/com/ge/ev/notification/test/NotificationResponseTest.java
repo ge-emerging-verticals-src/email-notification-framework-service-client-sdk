@@ -12,11 +12,12 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestNotificationResponse {
+public class NotificationResponseTest {
 
   private static final String json = "{\"timestamp\":1493407148536,\"message\":\"OK\",\"status\":1000,\"payload\":\"\",\"uuid\":\"7e4d5743-1f02-48dd-b3d2-678ee615270a\"}";
+
   @Test
-  public void TestNotificationResponseTest()
+  public void TestNotificationResponse()
   {
     ObjectMapper mapper = new ObjectMapper();
 

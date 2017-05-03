@@ -8,7 +8,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 /**
  * Created by 212391398 on 5/1/17.
  */
-public class NotificationRequestImpl implements NotificationRequest{
+public class NotificationRequestImpl implements NotificationRequest {
 
   protected static final String URL = "%s/%s%s";
   protected static final String URI = "/tenants/%s";

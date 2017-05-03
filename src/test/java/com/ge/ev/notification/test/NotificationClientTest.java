@@ -1,5 +1,9 @@
 package com.ge.ev.notification.test;
 
+import static com.ge.ev.notification.test.Constants.BASEURL;
+import static com.ge.ev.notification.test.Constants.TENANT_UUID;
+import static com.ge.ev.notification.test.Constants.VERSION;
+
 import com.ge.ev.notification.client.NotificationServiceClient;
 import com.ge.ev.notification.client.NotificationServiceClient.NotificationServiceClientBuilder;
 import org.junit.Test;
@@ -11,23 +15,18 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestNotificationClient {
+public class NotificationClientTest {
 
-  private String TENANT_UUID = "ebb09d9a-0f15-4338-b90b-038c109676ce";
-  private String VERSION = "v1";
-  private String BASE_URL = "https://notification.predix.io";
-  
- 
   @Test
-  public void NotificationClientBaseTest()
+  public void TestNotificationClientBase()
   {
     NotificationServiceClient notificationServiceClient = new NotificationServiceClientBuilder()
-        .setBaseUrl(BASE_URL)
+        .setBaseUrl(BASEURL)
         .setVersion(VERSION)
         .setTenantUuid(TENANT_UUID)
         .build();
     
-    assert(notificationServiceClient.getBaseUrl().equals(BASE_URL));
+    assert(notificationServiceClient.getBaseUrl().equals(BASEURL));
     assert(notificationServiceClient.getVersion().equals(VERSION));
     assert(notificationServiceClient.getTenantUuid().equals(TENANT_UUID));
   }

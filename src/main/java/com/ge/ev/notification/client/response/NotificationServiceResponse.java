@@ -54,4 +54,9 @@ public class NotificationServiceResponse extends JsonObject {
         ", uuid='" + uuid + '\'' +
         '}';
   }
+
+  public static NotificationServiceResponse toObject(String json)
+  {
+    return JsonObject.toObject(json, NotificationServiceResponse.class);
+  }
 }

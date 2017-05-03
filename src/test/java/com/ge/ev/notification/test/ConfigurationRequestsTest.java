@@ -1,5 +1,13 @@
 package com.ge.ev.notification.test;
 
+import static com.ge.ev.notification.test.Constants.AUTHORIZATION_HEADER;
+import static com.ge.ev.notification.test.Constants.BASEURL;
+import static com.ge.ev.notification.test.Constants.CONFIGURATION_UUID;
+import static com.ge.ev.notification.test.Constants.CONTENT_HEADER;
+import static com.ge.ev.notification.test.Constants.TENANT_UUID;
+import static com.ge.ev.notification.test.Constants.TOKEN;
+import static com.ge.ev.notification.test.Constants.VERSION;
+
 import com.ge.ev.notification.client.requests.configuration.ConfigurationRequestBody;
 import com.ge.ev.notification.client.requests.configuration.CreateConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.DeleteConfigurationRequest;
@@ -16,19 +24,10 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestConfigurationRequests {
+public class ConfigurationRequestsTest {
 
 
-  private static final String BASEURL = "https://notification.predix.io";
-  private static final String VERSION = "v1";
-  private static final String TENANT_UUID = "2beb4e8d-7eba-4cc1-b584-3d95bf84aedc";
-  private static final String CONFIGURATION_UUID = "cd407863-e152-4b3f-9635-ce153311a12c";
-  private static final String TOKEN = "8536aed6-0422-4e53-bb7d-4fc967128c50";
-
-  private static final String BASE_REQUEST_URL = BASEURL + "/"  + VERSION + "/tenants/" + TENANT_UUID + "/configurations/";
-  private static final String CONTENT_HEADER = "application/json";
-  private static final String AUTHORIZATION_HEADER = "bearer " + TOKEN;
-
+  public static final String BASE_REQUEST_URL = BASEURL + "/"  + VERSION + "/tenants/" + TENANT_UUID + "/configurations/";
   private static final String CONFIGURATION_REQUEST_URL = BASEURL + "/"  + VERSION + "/tenants/" + TENANT_UUID + "/configurations/" + CONFIGURATION_UUID;
 
   private static final String PROTOCOL = "smtp";
@@ -45,7 +44,7 @@ public class TestConfigurationRequests {
   private static final String CONFIGURATION_REQUEST_BODY_ARRAY_JSON = "[{\"protocol\":\"smtp\",\"host\":\"smtp.mail.notification.ge.com\",\"port\":587,\"smtpAuth\":true,\"smtpStarttlsEnable\":true,\"mailFrom\":\"test@notification.ge.com\",\"mailUsername\":\"test\",\"mailPassword\":\"test123\",\"mailReturnPath\":\"return.path\"}]";
 
   @Test
-  public void GetConfigurationRequestBuilderTest() {
+  public void TestGetConfigurationRequestBuilder() {
     GetConfigurationsRequest getConfigurationsRequest = new GetConfigurationsRequest.GetConfigurationsRequestBuilder(BASEURL, VERSION, TENANT_UUID).setToken(TOKEN).build();
 
     assert(getConfigurationsRequest.getTenantUuid().equals(TENANT_UUID));
@@ -74,7 +73,7 @@ public class TestConfigurationRequests {
   }
 
   @Test
-  public void DeleteConfigurationRequestBuilderTest() {
+  public void TestDeleteConfigurationRequestBuilder() {
     DeleteConfigurationRequest deleteConfigurationRequest = new DeleteConfigurationRequest.DeleteConfigurationsRequestBuilder(BASEURL, VERSION, TENANT_UUID).setToken(TOKEN).build();
 
     assert(deleteConfigurationRequest.getTenantUuid().equals(TENANT_UUID));
@@ -103,7 +102,7 @@ public class TestConfigurationRequests {
   }
 
   @Test
-  public void CreateConfigurationRequestBuilderTest() {
+  public void TestCreateConfigurationRequestBuilder() {
     ConfigurationRequestBody configurationRequestBody = new ConfigurationRequestBody.ConfigurationRequestBodyBuilder()
         .setHost(HOST)
         .setMailFrom(MAIL_FROM)
@@ -118,10 +117,8 @@ public class TestConfigurationRequests {
 
     assert(configurationRequestBody.toJson().equals(CONFIGURATION_REQUEST_BODY_JSON));
 
-
     CreateConfigurationRequest createConfigurationRequest = new CreateConfigurationRequest.CreateConfigurationRequestBuilder(BASEURL, VERSION, TENANT_UUID)
         .addConfigurationRequestBody(configurationRequestBody)
-//        .addConfigurationRequestBody(configurationRequestBody)
         .setToken(TOKEN)
         .build();
 
@@ -132,8 +129,7 @@ public class TestConfigurationRequests {
     assert(createConfigurationRequest.getRequestUrl().equals(BASE_REQUEST_URL));
     assert(createConfigurationRequest.getToken().equals(TOKEN));
 
-    System.out.println( createConfigurationRequest.getConfigurationRequestBodies().toJson() );
-//    assert(createConfigurationRequest.toJson().equals(CONFIGURATION_REQUEST_BODY_ARRAY_JSON));
+    assert(createConfigurationRequest.getConfigurationRequestBodies().toJson().equals(CONFIGURATION_REQUEST_BODY_ARRAY_JSON));
     assert(createConfigurationRequest.getConfigurationRequestBodies().get(0).toJson().equals(CONFIGURATION_REQUEST_BODY_JSON));
 
     HttpRequestBase requestBase = createConfigurationRequest.getRequest();
@@ -147,7 +143,7 @@ public class TestConfigurationRequests {
   }
 
   @Test
-  public void UpdateConfigurationRequestBuilderTest() {
+  public void TestUpdateConfigurationRequestBuilder() {
     ConfigurationRequestBody configurationRequestBody = new ConfigurationRequestBody.ConfigurationRequestBodyBuilder()
         .setHost(HOST)
         .setMailFrom(MAIL_FROM)
@@ -185,7 +181,7 @@ public class TestConfigurationRequests {
   }
 
   @Test
-  public void ConfigurationRequestBodyTest()
+  public void TestConfigurationRequestBody()
   {
     ConfigurationRequestBody configurationRequestBody = new ConfigurationRequestBody.ConfigurationRequestBodyBuilder()
         .setHost(HOST)

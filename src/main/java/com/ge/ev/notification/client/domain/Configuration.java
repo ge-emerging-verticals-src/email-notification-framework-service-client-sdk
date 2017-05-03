@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.ge.ev.notification.client.json.JsonObject;
+import java.util.Map;
 
 /**
  * Created by 212391398 on 5/1/17.
@@ -118,5 +119,10 @@ public class Configuration extends JsonObject {
 
   public void setMailReturnPath(String mailReturnPath) {
     this.mailReturnPath = mailReturnPath;
+  }
+  
+  public static Configuration toObject(Map<String, Object> map)
+  {
+    return JsonObject.toObject(map, Configuration.class);
   }
 }

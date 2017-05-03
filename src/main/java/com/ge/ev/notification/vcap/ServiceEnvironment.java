@@ -4,6 +4,7 @@ package com.ge.ev.notification.vcap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ge.ev.notification.vcap.domain.NotificationServiceEnvironmentElement;
 import com.ge.ev.notification.vcap.exceptions.ServiceEnvironmentException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,32 +48,37 @@ public class ServiceEnvironment {
   {
     if (vcap == null)
     {
-      throw new ServiceEnvironmentException("VCAP Service Environment not found");
+      throw new ServiceEnvironmentException("VCAP Service Environment not found", null);
     }
 
     LinkedHashMap<String, Object> vcapServicesMap = new LinkedHashMap<>();
     try
     {
       vcapServicesMap = mapper.readValue(vcap , vcapServicesMap.getClass());
+    }
+    catch (IOException e)
+    {
+      throw new ServiceEnvironmentException("Could not parse VCAP Environment", vcap);
+    }
 
-      List<LinkedHashMap<String, Object>> maps = (List<LinkedHashMap<String, Object>>) vcapServicesMap.get(NOTIFICATION_SEVICE_NAME);
+    List<LinkedHashMap<String, Object>> maps = (List<LinkedHashMap<String, Object>>) vcapServicesMap.get(NOTIFICATION_SEVICE_NAME);
 
-      if (maps != null)
-      {
+    if (maps != null)
+    {
         for (LinkedHashMap<String, Object> m : maps) {
-          NotificationServiceEnvironmentElement notificationServiceEnvironmentElement  = mapper.readValue(mapper.writeValueAsString(m), NotificationServiceEnvironmentElement.class);
+          NotificationServiceEnvironmentElement notificationServiceEnvironmentElement;
+          try {
+            notificationServiceEnvironmentElement = mapper.readValue(mapper.writeValueAsString(m), NotificationServiceEnvironmentElement.class);
+          } catch (IOException e) {
+            throw new ServiceEnvironmentException("Could not parse VCAP Environment", m.toString());
+          }
           if (notificationServiceEnvironmentElement != null) {
             notificationServiceEnvironmentElements.add(notificationServiceEnvironmentElement);
           }
         }
-      }
+    }
 
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-      throw new ServiceEnvironmentException("Could not parse VCAP Environment");
-    }
+
   }
 
 }

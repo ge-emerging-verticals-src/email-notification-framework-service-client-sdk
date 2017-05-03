@@ -1,5 +1,12 @@
 package com.ge.ev.notification.test;
 
+import static com.ge.ev.notification.test.Constants.AUTHORIZATION_HEADER;
+import static com.ge.ev.notification.test.Constants.BASEURL;
+import static com.ge.ev.notification.test.Constants.CONTENT_HEADER;
+import static com.ge.ev.notification.test.Constants.TENANT_UUID;
+import static com.ge.ev.notification.test.Constants.TOKEN;
+import static com.ge.ev.notification.test.Constants.VERSION;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ge.ev.notification.client.requests.tenant.GetTenantRequest;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequest;
@@ -14,21 +21,15 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class TestTenantRequests {
+public class TenantRequestsTest {
 
-  private static final String BASEURL = "https://notification.predix.io";
-  private static final String VERSION = "v1";
-  private static final String TENANT_UUID = "2beb4e8d-7eba-4cc1-b584-3d95bf84aedc";
   private static final String SUCCESS_WEBHOOK = "https://success.notification.predix.io";
   private static final String FAIL_WEBHOOK = "https://fail.notification.predix.io";
-  private static final String TOKEN = "8536aed6-0422-4e53-bb7d-4fc967128c50";
 
   private static final String REQUEST_URL = BASEURL + "/"  + VERSION + "/tenants/" + TENANT_UUID;
-  private static final String CONTENT_HEADER = "application/json";
-  private static final String AUTHORIZATION_HEADER = "bearer " + TOKEN;
 
   @Test
-  public void TenantRequestBuilderTest() throws JsonProcessingException {
+  public void TestTenantRequestBuilder() throws JsonProcessingException {
     GetTenantRequest getTenantRequest = new GetTenantRequest.GetTenantRequestBuilder(BASEURL, VERSION, TENANT_UUID).setToken(TOKEN).build();
     assert(getTenantRequest.getTenantUuid().equals(TENANT_UUID));
     assert(getTenantRequest.getRequestUri().equals("/tenants/" + TENANT_UUID));

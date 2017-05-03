@@ -3,6 +3,7 @@ package com.ge.ev.notification.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ge.ev.notification.NotificationService;
 import com.ge.ev.notification.client.domain.Configuration;
+import com.ge.ev.notification.client.domain.NotificationEvent;
 import com.ge.ev.notification.client.domain.Tenant;
 import com.ge.ev.notification.client.exceptions.NotificationClientException;
 import com.ge.ev.notification.client.exceptions.RequestException;
@@ -13,14 +14,19 @@ import com.ge.ev.notification.client.requests.configuration.CreateConfigurationR
 import com.ge.ev.notification.client.requests.configuration.DeleteConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.GetConfigurationsRequest;
 import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationRequest;
+import com.ge.ev.notification.client.requests.email.SendEmailRequest;
+import com.ge.ev.notification.client.requests.email.SendEmailRequestBody;
+import com.ge.ev.notification.client.requests.event.GetEventsRequest;
 import com.ge.ev.notification.client.requests.tenant.GetTenantRequest;
 import com.ge.ev.notification.client.requests.tenant.TenantRequest;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequest;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequestBody;
 import com.ge.ev.notification.client.response.NotificationServiceResponse;
+import com.ge.ev.notification.client.response.SendEmailResponse;
 import com.ge.ev.notification.status.NotificationServiceResponseStatus;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,15 +72,24 @@ public class NotificationServiceClient implements NotificationService {
     return baseUrl;
   }
 
-  public NotificationServiceResponse sendRequest(NotificationRequest notificationRequest) throws IOException, RequestException
+  public NotificationServiceResponse sendRequest(NotificationRequest notificationRequest) throws RequestException, NotificationClientException
   {
     HttpClient client = HttpClientBuilder.create().build();
     NotificationServiceResponse notificationServiceResponse = null;
     HttpRequestBase requestBase = notificationRequest.getRequest();
 
-    _logger.debug(requestBase.getURI().toURL().toString());
+    try {
+      _logger.debug(requestBase.getURI().toURL().toString());
+    } catch (MalformedURLException e) {
+     throw new NotificationClientException("Request Url is malformed: " +  notificationRequest.getRequestUrl(), e.getMessage() );
+    }
 
-    HttpResponse response = client.execute(requestBase);
+    HttpResponse response = null;
+    try {
+      response = client.execute(requestBase);
+    } catch (IOException e) {
+      throw new RequestException( "Client has encountered a problem with this request ", notificationRequest.getRequestUrl(), -1, e.getMessage() );
+    }
 
     if (response != null) {
 
@@ -84,23 +99,33 @@ public class NotificationServiceClient implements NotificationService {
       {
           HttpEntity entity = response.getEntity();
           if (entity != null) {
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(
-                response.getEntity().getContent());
-            String json = IOUtils.toString(bufferedInputStream);
-            notificationServiceResponse = mapper.readValue(json, NotificationServiceResponse.class);
-            bufferedInputStream.close();
+            BufferedInputStream bufferedInputStream = null;
+            try
+            {
+              bufferedInputStream = new BufferedInputStream(response.getEntity().getContent());
+              String json = IOUtils.toString(bufferedInputStream);
+              notificationServiceResponse = mapper.readValue(json, NotificationServiceResponse.class);
+              bufferedInputStream.close();
+            }
+            catch (IOException e)
+            {
+              e.printStackTrace();
+            }
 
             _logger.debug( notificationServiceResponse.toJson() );
 
-            if (!notificationServiceResponse.getStatus().equals(NotificationServiceResponseStatus.Ok.getValue()))
+            Long status = notificationServiceResponse.getStatus();
+
+            if ( !status.equals(NotificationServiceResponseStatus.Ok.getValue()) &&
+                !status.equals(NotificationServiceResponseStatus.NotificationEmailMessageQueued.getValue()) )
             {
-              throw new RequestException(notificationServiceResponse.getMessage());
+              throw new RequestException(notificationServiceResponse.getMessage(), notificationRequest.getRequestUrl(), notificationServiceResponse.getStatus().intValue(), notificationServiceResponse.getMessage());
             }
           }
-      } else {
-        throw new RequestException(
-            "Service has returned " + response.getStatusLine().getStatusCode() + ", " + response
-                .getStatusLine().getReasonPhrase());
+      }
+      else
+        {
+        throw new RequestException("Service has returned error: ",  notificationRequest.getRequestUrl(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
       }
     }
 
@@ -108,7 +133,7 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public Tenant getTenant(String token) throws IOException, RequestException {
+  public Tenant getTenant(String token) throws RequestException, NotificationClientException {
 
     GetTenantRequest getTenantRequest = new GetTenantRequest.GetTenantRequestBuilder(this.baseUrl, this.version, this.tenantUuid).
         setToken(token).
@@ -118,8 +143,7 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public Tenant updateTenant(String token, UpdateTenantConfigurationRequestBody updateTenantConfigurationRequestBody)
-      throws IOException, RequestException {
+  public Tenant updateTenant(String token, UpdateTenantConfigurationRequestBody updateTenantConfigurationRequestBody) throws RequestException, NotificationClientException{
 
     UpdateTenantConfigurationRequest updateTenantConfigurationRequest = new UpdateTenantConfigurationRequest.UpdateTenantConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setUpdateTenantConfigurationRequestBody(updateTenantConfigurationRequestBody)
@@ -130,8 +154,7 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Configuration> getConfigurations(String token, String configurationUuid)
-      throws IOException, RequestException {
+  public List<Configuration> getConfigurations(String token, String configurationUuid) throws RequestException, NotificationClientException{
 
     GetConfigurationsRequest getConfigurationsRequest = new GetConfigurationsRequest.GetConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setConfigurationUuid(configurationUuid)
@@ -142,7 +165,8 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Configuration> createConfiguration(String token, ConfigurationRequestBody configurationRequestBody)  throws IOException, RequestException {
+  public List<Configuration> createConfiguration(String token, ConfigurationRequestBody configurationRequestBody) throws RequestException, NotificationClientException
+  {
     CreateConfigurationRequest createConfigurationRequest = new CreateConfigurationRequest.CreateConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .addConfigurationRequestBody(configurationRequestBody)
         .setToken(token)
@@ -154,13 +178,11 @@ public class NotificationServiceClient implements NotificationService {
       }
     }
 
-
-
     return sendConfigurationRequest(createConfigurationRequest);
   }
 
   @Override
-  public List<Configuration> updateConfiguration(String token, String configurationUuid, ConfigurationRequestBody configurationRequestBody)  throws IOException, RequestException {
+  public List<Configuration> updateConfiguration(String token, String configurationUuid, ConfigurationRequestBody configurationRequestBody)  throws RequestException, NotificationClientException {
     UpdateConfigurationRequest updateConfigurationRequest = new UpdateConfigurationRequest.UpdateConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setConfigurationUuid(configurationUuid)
         .setConfigurationRequestBody(configurationRequestBody)
@@ -171,7 +193,7 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Configuration> deleteConfiguration(String token, String configurationUuid) throws IOException, RequestException, NotificationClientException {
+  public List<Configuration> deleteConfiguration(String token, String configurationUuid) throws RequestException, NotificationClientException {
 
     DeleteConfigurationRequest deleteConfigurationRequest = new DeleteConfigurationRequest.DeleteConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setConfigurationUuid(configurationUuid)
@@ -181,8 +203,60 @@ public class NotificationServiceClient implements NotificationService {
     return sendConfigurationRequest(deleteConfigurationRequest);
   }
 
-  private List<Configuration> sendConfigurationRequest(ConfigurationsRequest configurationsRequest)
-      throws IOException, RequestException {
+  @Override
+  public SendEmailResponse sendEmail(String token, String configurationUuid, SendEmailRequestBody sendEmailRequestBody) throws RequestException, NotificationClientException {
+     SendEmailResponse sendEmailResponse = null;
+    if (sendEmailRequestBody != null) {
+      _logger.debug(sendEmailRequestBody.toJson());
+    }
+
+    SendEmailRequest sendEmailRequest = new SendEmailRequest.SendEmailRequestBuilder(this.baseUrl, this.version, this.tenantUuid, configurationUuid)
+        .setSendEmailRequestBody(sendEmailRequestBody)
+        .setToken(token)
+        .build();
+
+    NotificationServiceResponse notificationServiceResponse = sendRequest(sendEmailRequest);
+    _logger.debug(notificationServiceResponse.toJson());
+
+    if (notificationServiceResponse != null)
+    {
+      sendEmailResponse = SendEmailResponse.toObject((LinkedHashMap) notificationServiceResponse.getPayload());
+    }
+
+    return sendEmailResponse;
+  }
+
+  @Override
+  public List<NotificationEvent> getEvents(String token, String notificationReferenceUuid) throws RequestException, NotificationClientException {
+
+    ArrayList<NotificationEvent> notificationEvents = new ArrayList<>();
+
+    GetEventsRequest getEventsRequest = new GetEventsRequest.GetEventsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setNotificationReferenceUuid(notificationReferenceUuid)
+        .setToken(token)
+        .build();
+
+    NotificationServiceResponse notificationServiceResponse = sendRequest(getEventsRequest);
+    _logger.debug(notificationServiceResponse.toJson());
+
+    if (notificationServiceResponse != null)
+    {
+      try {
+        ArrayList<LinkedHashMap<String, Object>> hashMaps = (ArrayList<LinkedHashMap<String, Object>>) notificationServiceResponse.getPayload();
+        if (hashMaps != null) {
+          for (LinkedHashMap<String, Object> map : hashMaps) {
+            notificationEvents.add(NotificationEvent.toObject(map));
+          }
+        }
+      }
+      catch (ClassCastException ex) {}
+    }
+
+    return notificationEvents;
+  }
+
+  private List<Configuration> sendConfigurationRequest(ConfigurationsRequest configurationsRequest) throws RequestException, NotificationClientException
+  {
     ArrayList<Configuration> configurations = new ArrayList<>();
 
 
@@ -201,13 +275,13 @@ public class NotificationServiceClient implements NotificationService {
             .getPayload();
         if (hashMaps != null) {
           for (LinkedHashMap<String, Object> map : hashMaps) {
-            configurations.add(Configuration.toObject(map, Configuration.class));
+            configurations.add(Configuration.toObject(map));
           }
         }
       }
       catch (ClassCastException ex) {}
       try{
-        configurations.add(Configuration.toObject((LinkedHashMap) notificationServiceResponse.getPayload(), Configuration.class));
+        configurations.add(Configuration.toObject((LinkedHashMap) notificationServiceResponse.getPayload()));
       }
       catch (ClassCastException ex) {}
     }
@@ -215,7 +289,7 @@ public class NotificationServiceClient implements NotificationService {
     return configurations;
   }
 
-  private Tenant sendTenantRequest(TenantRequest tenantRequest) throws IOException, RequestException {
+  private Tenant sendTenantRequest(TenantRequest tenantRequest) throws RequestException, NotificationClientException {
     Tenant tenant = null;
 
     if (tenantRequest.getRequestBody() != null) {
@@ -228,7 +302,7 @@ public class NotificationServiceClient implements NotificationService {
 
     if (notificationServiceResponse != null)
     {
-      tenant = Tenant.toObject((LinkedHashMap) notificationServiceResponse.getPayload(), Tenant.class);
+      tenant = Tenant.toObject((LinkedHashMap) notificationServiceResponse.getPayload());
     }
 
     return tenant;
