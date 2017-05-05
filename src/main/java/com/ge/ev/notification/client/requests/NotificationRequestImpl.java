@@ -13,7 +13,8 @@ public class NotificationRequestImpl implements NotificationRequest {
   protected static final String URL = "%s/%s%s";
   protected static final String URI = "/tenants/%s";
   protected static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
-
+  protected static final String CONTENT_TYPE_X_WWW_FORM_ENCODED = " application/x-www-form-urlencoded";
+  protected static final String CONTENT_TYPE_MULTIPART_FORM_DATA =  "multipart/form-data";
   protected String tenantUuid;
   protected String baseUrl;
   protected String version;
@@ -32,7 +33,6 @@ public class NotificationRequestImpl implements NotificationRequest {
     this.token = notificationRequestBuilder.getToken();
 
     this.headers = new LinkedHashMap<>();
-    this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
     StringBuilder authString = new StringBuilder("bearer ");
     authString.append(this.token);
     this.headers.put(HttpHeaders.AUTHORIZATION, authString.toString());

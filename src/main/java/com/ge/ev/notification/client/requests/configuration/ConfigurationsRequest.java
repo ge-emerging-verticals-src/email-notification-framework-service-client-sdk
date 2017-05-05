@@ -1,6 +1,7 @@
 package com.ge.ev.notification.client.requests.configuration;
 
 import com.ge.ev.notification.client.requests.NotificationRequestImpl;
+import org.apache.http.HttpHeaders;
 
 /**
  * Created by 212391398 on 5/1/17.
@@ -15,6 +16,7 @@ public class ConfigurationsRequest extends NotificationRequestImpl {
   protected ConfigurationsRequest(ConfigurationsRequestBuilder builder)
   {
     super(builder);
+    this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
     this.configurationUuid = builder.getConfigurationUuid() != null ? builder.getConfigurationUuid() : "";
   }
 

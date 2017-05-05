@@ -23,5 +23,6 @@ public class Constants {
   public static final String EMAIL ="ev.notification@ge.com";
   public static final String NAME = "EV Notification Service";
   public static final String TYPE = "to";
-
+  public static final String TEMPLATE_UUID = "2f9f0c1a-2ca5-4a86-a366-4b9e6db7253c";
+  public static final String MATCHER_UUID = "3436eaef-ebd9-4b83-b673-4696f51684ea";
 }

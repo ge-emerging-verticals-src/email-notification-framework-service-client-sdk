@@ -1,11 +1,14 @@
 package com.ge.ev.notification.client.requests.email;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.ge.ev.notification.client.json.JsonObject;
 import com.ge.ev.notification.client.util.JsonSerializableArrayList;
 
 /**
  * Created by 212391398 on 5/2/17.
  */
+@JsonInclude(Include.NON_EMPTY)
 public class SendEmailRequestBody extends JsonObject {
   private String body;
   private JsonSerializableArrayList<SendEmailRequestBodyRecipient> recipients;
@@ -14,7 +17,7 @@ public class SendEmailRequestBody extends JsonObject {
   private String fromEmail;
   private String fromName;
 
-  private SendEmailRequestBody(SendEmailRequestBodyBuilder builder) {
+  protected SendEmailRequestBody(SendEmailRequestBodyBuilder builder) {
      this.body = builder.getBody();
      this.fromEmail = builder.getFromEmail();
      this.recipients = builder.getRecipients();

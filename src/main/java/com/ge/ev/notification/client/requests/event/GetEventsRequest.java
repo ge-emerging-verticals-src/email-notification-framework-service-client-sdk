@@ -3,9 +3,7 @@ package com.ge.ev.notification.client.requests.event;
 import com.ge.ev.notification.client.requests.NotificationRequestImpl;
 import org.apache.http.client.methods.HttpGet;
 
-/**
- * Created by 212391398 on 5/3/17.
- */
+
 public class GetEventsRequest extends NotificationRequestImpl {
 
   protected static final String ALL_EVENTS_URI = "/tenants/%s/events";
@@ -43,7 +41,6 @@ public class GetEventsRequest extends NotificationRequestImpl {
     public GetEventsRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
       super(baseUrl, version, tenantUuid);
-      this.notificationReferenceUuid = notificationReferenceUuid;
     }
 
     public String getNotificationReferenceUuid() {

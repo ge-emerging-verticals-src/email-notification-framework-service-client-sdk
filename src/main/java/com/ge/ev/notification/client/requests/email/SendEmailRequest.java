@@ -2,6 +2,7 @@ package com.ge.ev.notification.client.requests.email;
 
 import com.ge.ev.notification.client.requests.NotificationRequestImpl;
 import java.io.UnsupportedEncodingException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
@@ -21,6 +22,7 @@ public class SendEmailRequest extends NotificationRequestImpl {
   protected SendEmailRequest(SendEmailRequestBuilder builder)
   {
     super(builder);
+    this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
     this.configurationUuid = builder.getConfigurationUuid();
     this.templateUuid = builder.getTemplateUuid();
     this.sendEmailRequestBody = builder.getSendEmailRequestBody();

@@ -57,10 +57,10 @@ public class ConfigurationRequestsTest {
     HttpRequestBase requestBase = getConfigurationsRequest.getRequest();
 
     assert(requestBase!=null);
-    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
-    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
-    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
-    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[0].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(AUTHORIZATION_HEADER));
 
     GetConfigurationsRequest getConfigurationsRequest2 = new GetConfigurationsRequest.GetConfigurationsRequestBuilder(BASEURL, VERSION, TENANT_UUID).setConfigurationUuid(CONFIGURATION_UUID).setToken(TOKEN).build();
 
@@ -86,10 +86,10 @@ public class ConfigurationRequestsTest {
     HttpRequestBase requestBase = deleteConfigurationRequest.getRequest();
 
     assert(requestBase!=null);
-    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
-    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
-    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
-    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[0].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(AUTHORIZATION_HEADER));
 
     DeleteConfigurationRequest deleteConfigurationRequest2 = new DeleteConfigurationRequest.DeleteConfigurationsRequestBuilder(BASEURL, VERSION, TENANT_UUID).setConfigurationUuid(CONFIGURATION_UUID).setToken(TOKEN).build();
 
@@ -135,10 +135,10 @@ public class ConfigurationRequestsTest {
     HttpRequestBase requestBase = createConfigurationRequest.getRequest();
 
     assert(requestBase!=null);
-    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
-    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
-    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
-    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[0].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(AUTHORIZATION_HEADER));
     
   }
 
@@ -174,10 +174,10 @@ public class ConfigurationRequestsTest {
     HttpRequestBase requestBase = updateConfigurationRequest.getRequest();
 
     assert(requestBase!=null);
-    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
-    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
-    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
-    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[0].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(AUTHORIZATION_HEADER));
   }
 
   @Test

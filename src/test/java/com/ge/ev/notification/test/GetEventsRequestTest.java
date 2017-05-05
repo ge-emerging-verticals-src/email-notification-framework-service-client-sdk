@@ -19,10 +19,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class GetEventsRequestTest {
 
-
-  private static final String ALL_EVENT_REQUEST_URL = "https://notification.predix.io/" + VERSION + "/tenants/" + TENANT_UUID + "/events";
+  private static final String ALL_EVENT_REQUEST_URL =BASEURL + "/" + VERSION + "/tenants/" + TENANT_UUID + "/events";
   private static final String EVENT_REQUEST_URL = ALL_EVENT_REQUEST_URL + "?tag=" + NOTIFICATION_REFERENCE_UUID;
-
 
   @Test
   public void TestGetEventsRequest()

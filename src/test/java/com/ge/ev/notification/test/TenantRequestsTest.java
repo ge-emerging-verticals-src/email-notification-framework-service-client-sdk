@@ -41,10 +41,10 @@ public class TenantRequestsTest {
     HttpRequestBase requestBase = getTenantRequest.getRequest();
     assert(requestBase!=null);
 
-    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
-    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
-    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
-    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[0].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(AUTHORIZATION_HEADER));
 
     UpdateTenantConfigurationRequestBody updateTenantConfigurationRequestBody = new UpdateTenantConfigurationRequestBody.UpdateTenantConfigurationRequestBodyBuilder().setSuccessWebhook(SUCCESS_WEBHOOK).setFailWebhook(FAIL_WEBHOOK).build();
     assert(updateTenantConfigurationRequestBody.getFailWebhook().equals(FAIL_WEBHOOK));
@@ -62,10 +62,10 @@ public class TenantRequestsTest {
     requestBase = updateTenantConfigurationRequest.getRequest();
     assert(requestBase!=null);
 
-    assert(requestBase.getAllHeaders()[0].getName().equals("Content-Type"));
-    assert(requestBase.getAllHeaders()[0].getValue().equals(CONTENT_HEADER));
-    assert(requestBase.getAllHeaders()[1].getName().equals("Authorization"));
-    assert(requestBase.getAllHeaders()[1].getValue().equals(AUTHORIZATION_HEADER));
+    assert(requestBase.getAllHeaders()[1].getName().equals("Content-Type"));
+    assert(requestBase.getAllHeaders()[1].getValue().equals(CONTENT_HEADER));
+    assert(requestBase.getAllHeaders()[0].getName().equals("Authorization"));
+    assert(requestBase.getAllHeaders()[0].getValue().equals(AUTHORIZATION_HEADER));
 
   }
 

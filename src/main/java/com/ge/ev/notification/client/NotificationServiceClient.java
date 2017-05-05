@@ -3,7 +3,10 @@ package com.ge.ev.notification.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ge.ev.notification.NotificationService;
 import com.ge.ev.notification.client.domain.Configuration;
+import com.ge.ev.notification.client.domain.Matcher;
 import com.ge.ev.notification.client.domain.NotificationEvent;
+import com.ge.ev.notification.client.domain.Recipient;
+import com.ge.ev.notification.client.domain.Template;
 import com.ge.ev.notification.client.domain.Tenant;
 import com.ge.ev.notification.client.exceptions.NotificationClientException;
 import com.ge.ev.notification.client.exceptions.RequestException;
@@ -17,6 +20,23 @@ import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationR
 import com.ge.ev.notification.client.requests.email.SendEmailRequest;
 import com.ge.ev.notification.client.requests.email.SendEmailRequestBody;
 import com.ge.ev.notification.client.requests.event.GetEventsRequest;
+import com.ge.ev.notification.client.requests.template.CreateMatchersRequest;
+import com.ge.ev.notification.client.requests.template.CreateMatchersRequestBody;
+import com.ge.ev.notification.client.requests.template.CreateRecipientsRequest;
+import com.ge.ev.notification.client.requests.template.CreateRecipientsRequestBody;
+import com.ge.ev.notification.client.requests.template.CreateTemplateRequest;
+import com.ge.ev.notification.client.requests.template.CreateTemplateRequestBody;
+import com.ge.ev.notification.client.requests.template.DeleteMatcherRequest;
+import com.ge.ev.notification.client.requests.template.DeleteRecipientsRequest;
+import com.ge.ev.notification.client.requests.template.DeleteTemplateRequest;
+import com.ge.ev.notification.client.requests.template.GetMatcherRequest;
+import com.ge.ev.notification.client.requests.template.GetRecipientsRequest;
+import com.ge.ev.notification.client.requests.template.GetTemplateRequest;
+import com.ge.ev.notification.client.requests.template.MatchersRequest;
+import com.ge.ev.notification.client.requests.template.RecipientsRequest;
+import com.ge.ev.notification.client.requests.template.TemplateRequest;
+import com.ge.ev.notification.client.requests.template.UploadTemplateRequest;
+import com.ge.ev.notification.client.requests.template.UploadTemplateRequestBody;
 import com.ge.ev.notification.client.requests.tenant.GetTenantRequest;
 import com.ge.ev.notification.client.requests.tenant.TenantRequest;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequest;
@@ -26,6 +46,7 @@ import com.ge.ev.notification.client.response.SendEmailResponse;
 import com.ge.ev.notification.status.NotificationServiceResponseStatus;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -72,7 +93,7 @@ public class NotificationServiceClient implements NotificationService {
     return baseUrl;
   }
 
-  public NotificationServiceResponse sendRequest(NotificationRequest notificationRequest) throws RequestException, NotificationClientException
+  protected NotificationServiceResponse sendRequest(NotificationRequest notificationRequest) throws RequestException, NotificationClientException
   {
     HttpClient client = HttpClientBuilder.create().build();
     NotificationServiceResponse notificationServiceResponse = null;
@@ -84,15 +105,15 @@ public class NotificationServiceClient implements NotificationService {
      throw new NotificationClientException("Request Url is malformed: " +  notificationRequest.getRequestUrl(), e.getMessage() );
     }
 
-    HttpResponse response = null;
+    HttpResponse response;
     try {
       response = client.execute(requestBase);
     } catch (IOException e) {
-      throw new RequestException( "Client has encountered a problem with this request ", notificationRequest.getRequestUrl(), -1, e.getMessage() );
+      throw new RequestException( "Client has encountered a problem with this request ", "",  notificationRequest.getRequestUrl(), -1, e.getMessage() );
     }
 
-    if (response != null) {
-
+    if (response != null)
+    {
       _logger.debug( response.getStatusLine().getStatusCode() + ", " + response.getStatusLine().getReasonPhrase());
 
       if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
@@ -119,13 +140,20 @@ public class NotificationServiceClient implements NotificationService {
             if ( !status.equals(NotificationServiceResponseStatus.Ok.getValue()) &&
                 !status.equals(NotificationServiceResponseStatus.NotificationEmailMessageQueued.getValue()) )
             {
-              throw new RequestException(notificationServiceResponse.getMessage(), notificationRequest.getRequestUrl(), notificationServiceResponse.getStatus().intValue(), notificationServiceResponse.getMessage());
+              throw new RequestException(notificationServiceResponse.getMessage(), notificationServiceResponse.getPayload().toString(), notificationRequest.getRequestUrl(), notificationServiceResponse.getStatus().intValue(), notificationServiceResponse.getMessage());
             }
           }
       }
       else
         {
-        throw new RequestException("Service has returned error: ",  notificationRequest.getRequestUrl(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+          String details = null;
+          try {
+             details = IOUtils.toString(response.getEntity().getContent());
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+
+          throw new RequestException("Service has returned error: ",  details, notificationRequest.getRequestUrl(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
       }
     }
 
@@ -204,7 +232,7 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public SendEmailResponse sendEmail(String token, String configurationUuid, SendEmailRequestBody sendEmailRequestBody) throws RequestException, NotificationClientException {
+  public SendEmailResponse sendEmail(String token, String configurationUuid, SendEmailRequestBody sendEmailRequestBody, String templateUuid) throws RequestException, NotificationClientException {
      SendEmailResponse sendEmailResponse = null;
     if (sendEmailRequestBody != null) {
       _logger.debug(sendEmailRequestBody.toJson());
@@ -212,6 +240,7 @@ public class NotificationServiceClient implements NotificationService {
 
     SendEmailRequest sendEmailRequest = new SendEmailRequest.SendEmailRequestBuilder(this.baseUrl, this.version, this.tenantUuid, configurationUuid)
         .setSendEmailRequestBody(sendEmailRequestBody)
+        .setTemplateUuid(templateUuid)
         .setToken(token)
         .build();
 
@@ -253,6 +282,205 @@ public class NotificationServiceClient implements NotificationService {
     }
 
     return notificationEvents;
+  }
+
+  @Override
+  public List<Template> getTemplates(String token, String templateUuid) throws RequestException, NotificationClientException {
+
+    GetTemplateRequest getTemplateRequest = new GetTemplateRequest.GetTemplateRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setTemplateUuid(templateUuid)
+        .setToken(token)
+        .build();
+
+    return  sendTemplateRequest(getTemplateRequest);
+  }
+
+  @Override
+  public List<Template> createTemplate(String token, CreateTemplateRequestBody createTemplateRequestBody, InputStream templateFileInputStream) throws RequestException, NotificationClientException {
+    CreateTemplateRequest createTemplateRequest = new CreateTemplateRequest.CreateTemplateRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setCreateTemplateRequestBody(createTemplateRequestBody)
+        .setToken(token)
+        .build();
+
+     List<Template> templates =  sendTemplateRequest(createTemplateRequest);
+
+    if (templates != null && templateFileInputStream != null) {
+      UploadTemplateRequestBody uploadTemplateRequestBody = new UploadTemplateRequestBody.UploadTemplateRequestBodyBuilder(templateFileInputStream)
+          .build();
+
+      UploadTemplateRequest uploadTemplateRequest = new UploadTemplateRequest.UploadTemplateRequestBuilder(
+          this.baseUrl, this.version, this.tenantUuid)
+          .setTemplateUuid(templates.get(0).getTemplateUuid())
+          .setUploadTemplateRequestBody(uploadTemplateRequestBody)
+          .setToken(token)
+          .build();
+
+      templates = sendTemplateRequest(uploadTemplateRequest);
+    }
+
+    return templates;
+  }
+
+  @Override
+  public List<Template> deleteTemplate(String token, String templateUuid) throws RequestException, NotificationClientException {
+
+    DeleteTemplateRequest deleteTemplateRequest = new DeleteTemplateRequest.DeleteTemplateRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setTemplateUuid(templateUuid)
+        .setToken(token)
+        .build();
+
+    return sendTemplateRequest(deleteTemplateRequest);
+  }
+
+  @Override
+  public List<Matcher> getMatchers(String token, String templateUuid, String matcherUuid) throws RequestException, NotificationClientException {
+
+    GetMatcherRequest getMatcherRequest = new GetMatcherRequest.GetMatcherRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setMatcherUuid(matcherUuid)
+        .setTemplateUuid(templateUuid)
+        .setToken(token)
+        .build();
+
+    return sendMatchersRequest(getMatcherRequest);
+
+  }
+
+  @Override
+  public List<Matcher> createMatcher(String token, String templateUuid, CreateMatchersRequestBody createMatchersRequestBody) throws RequestException, NotificationClientException {
+
+    CreateMatchersRequest createMatchersRequest = new CreateMatchersRequest.CreateMatchersRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setCreateMatchersRequestBody(createMatchersRequestBody)
+        .setTemplateUuid(templateUuid)
+        .setToken(token)
+        .build();
+
+    return sendMatchersRequest(createMatchersRequest);
+  }
+
+  @Override
+  public List<Matcher> deleteMatcher(String token, String templateUuid, String matcherUuid) throws RequestException, NotificationClientException {
+
+    DeleteMatcherRequest deleteMatcherRequest = new DeleteMatcherRequest.DeleteMatchersRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setTemplateUuid(templateUuid)
+        .setMatcherUuid(matcherUuid)
+        .setToken(token)
+        .build();
+
+    return sendMatchersRequest(deleteMatcherRequest);
+  }
+
+  @Override
+  public List<Recipient> getRecipients(String token, String templateUuid, String matcherUuid, String recipientUuid) throws RequestException, NotificationClientException {
+    GetRecipientsRequest getRecipientsRequest = new GetRecipientsRequest.GetRecipientsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setMatcherUuid(matcherUuid)
+        .setTemplateUuid(templateUuid)
+        .setRecipientUuid(recipientUuid)
+        .setToken(token)
+        .build();
+
+    return sendRecipientsRequest(getRecipientsRequest);
+  }
+
+  @Override
+  public List<Recipient> createRecipients(String token, String templateUuid, String matcherUuid, CreateRecipientsRequestBody createRecipientsRequestBody) throws RequestException, NotificationClientException {
+    CreateRecipientsRequest createRecipientsRequest = new CreateRecipientsRequest.CreateRecipientsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setCreateRecipientsRequestBody(createRecipientsRequestBody)
+        .setTemplateUuid(templateUuid)
+        .setMatcherUuid(matcherUuid)
+        .setToken(token)
+        .build();
+
+    return sendRecipientsRequest(createRecipientsRequest);
+  }
+
+  @Override
+  public List<Recipient> deleteRecipient(String token, String templateUuid, String matcherUuid, String recipientUuid) throws RequestException, NotificationClientException {
+
+    DeleteRecipientsRequest deleteRecipientsRequest = new DeleteRecipientsRequest.DeleteRecipientsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
+        .setTemplateUuid(templateUuid)
+        .setMatcherUuid(matcherUuid)
+        .setRecipientUuid(recipientUuid)
+        .setToken(token)
+        .build();
+
+    return sendRecipientsRequest(deleteRecipientsRequest);
+  }
+
+  private List<Recipient> sendRecipientsRequest(RecipientsRequest recipientsRequest)throws RequestException, NotificationClientException
+  {
+    NotificationServiceResponse notificationServiceResponse = sendRequest(recipientsRequest);
+    _logger.debug(notificationServiceResponse.toJson());
+
+    ArrayList<Recipient> recipients = new ArrayList<>();
+    if (notificationServiceResponse != null)
+    {
+      try {
+        ArrayList<LinkedHashMap<String, Object>> hashMaps = (ArrayList<LinkedHashMap<String, Object>>) notificationServiceResponse.getPayload();
+        if (hashMaps != null) {
+          for (LinkedHashMap<String, Object> map : hashMaps) {
+            recipients.add(Recipient.toObject(map));
+          }
+        }
+      }
+      catch (ClassCastException ex) {}
+      try{
+        recipients.add(Recipient.toObject((LinkedHashMap) notificationServiceResponse.getPayload()));
+      }
+      catch (ClassCastException ex) {}
+    }
+    return recipients;
+  }
+
+  private List<Matcher> sendMatchersRequest(MatchersRequest matchersRequest)throws RequestException, NotificationClientException
+  {
+    NotificationServiceResponse notificationServiceResponse = sendRequest(matchersRequest);
+    _logger.debug(notificationServiceResponse.toJson());
+
+    ArrayList<Matcher> matchers = new ArrayList<>();
+    if (notificationServiceResponse != null)
+    {
+      try {
+        ArrayList<LinkedHashMap<String, Object>> hashMaps = (ArrayList<LinkedHashMap<String, Object>>) notificationServiceResponse.getPayload();
+        if (hashMaps != null) {
+          for (LinkedHashMap<String, Object> map : hashMaps) {
+            matchers.add(Matcher.toObject(map));
+          }
+        }
+      }
+      catch (ClassCastException ex) {}
+      try{
+        matchers.add(Matcher.toObject((LinkedHashMap) notificationServiceResponse.getPayload()));
+      }
+      catch (ClassCastException ex) {}
+    }
+
+    return matchers;
+  }
+
+  private List<Template> sendTemplateRequest(TemplateRequest templateRequest)throws RequestException, NotificationClientException
+  {
+    NotificationServiceResponse notificationServiceResponse = sendRequest(templateRequest);
+    _logger.debug(notificationServiceResponse.toJson());
+
+    ArrayList<Template> templates = new ArrayList<>();
+    if (notificationServiceResponse != null)
+    {
+      try {
+        ArrayList<LinkedHashMap<String, Object>> hashMaps = (ArrayList<LinkedHashMap<String, Object>>) notificationServiceResponse.getPayload();
+        if (hashMaps != null) {
+          for (LinkedHashMap<String, Object> map : hashMaps) {
+            templates.add(Template.toObject(map));
+          }
+        }
+      }
+      catch (ClassCastException ex) {}
+      try{
+        templates.add(Template.toObject((LinkedHashMap) notificationServiceResponse.getPayload()));
+      }
+      catch (ClassCastException ex) {}
+    }
+
+    return templates;
   }
 
   private List<Configuration> sendConfigurationRequest(ConfigurationsRequest configurationsRequest) throws RequestException, NotificationClientException

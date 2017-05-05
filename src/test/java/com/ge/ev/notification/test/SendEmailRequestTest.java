@@ -6,6 +6,7 @@ import static com.ge.ev.notification.test.Constants.EMAIL;
 import static com.ge.ev.notification.test.Constants.NAME;
 import static com.ge.ev.notification.test.Constants.NOTIFICATION_REFERENCE_UUID;
 import static com.ge.ev.notification.test.Constants.RECIPIENTS_JSON_ARRAY;
+import static com.ge.ev.notification.test.Constants.TEMPLATE_UUID;
 import static com.ge.ev.notification.test.Constants.TENANT_UUID;
 import static com.ge.ev.notification.test.Constants.TOKEN;
 import static com.ge.ev.notification.test.Constants.TYPE;
@@ -14,6 +15,7 @@ import static com.ge.ev.notification.test.Constants.VERSION;
 import com.ge.ev.notification.client.requests.email.SendEmailRequest;
 import com.ge.ev.notification.client.requests.email.SendEmailRequestBody;
 import com.ge.ev.notification.client.requests.email.SendEmailRequestBodyRecipient;
+import com.ge.ev.notification.client.requests.email.TemplateEmailRequestBody;
 import com.ge.ev.notification.client.response.SendEmailResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +25,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class SendEmailRequestTest {
 
-  private static final String TEMPLATE_UUID = "2f9f0c1a-2ca5-4a86-a366-4b9e6db7253c";
 
   private static final String BODY ="This is a test email";
   private static final String SUBJECT = "This is a test subject";
@@ -40,6 +41,8 @@ public class SendEmailRequestTest {
   private static final String TEMPLATE_EMAIL_URL = "https://notification.predix.io/v1/tenants/"+TENANT_UUID+"/email?configuration="+CONFIGURATION_UUID;
 
   private static final String SEND_EMAIL_REPONSE_JSON = "{\"errors\": [\"test error\"],\"notificationReferenceUuid\": \""+NOTIFICATION_REFERENCE_UUID+"\",\"notificationStatus\": \"NotificationEmailMessageQueued\"}";
+
+  private static final String SEND_EMAIL_TEMPLATE_BODY_JSON = "{\"key1\":\"value1\",\"key2\":\"value2\"}";
 
   @Test
   public void TestSendEmailRequestBase() {
@@ -146,6 +149,20 @@ public class SendEmailRequestTest {
     assert(sendEmailResponse.getErrors().get(0).equals("test error"));
     assert(sendEmailResponse.getNotificationReferenceUuid().equals(NOTIFICATION_REFERENCE_UUID));
     assert(sendEmailResponse.getNotificationStatus().equals("NotificationEmailMessageQueued"));
+  }
+
+  @Test
+  public void TestTemplateEmailRequestBody()
+  {
+    SendEmailResponse sendEmailResponse =  SendEmailResponse.toObject(SEND_EMAIL_REPONSE_JSON);
+
+    TemplateEmailRequestBody templateEmailRequestBody = new TemplateEmailRequestBody.TemplateEmailRequestBodyBuilder()
+        .addKeyValue("key1", "value1")
+        .addKeyValue("key2", "value2")
+        .build();
+
+    assert(templateEmailRequestBody.toJson().equals(SEND_EMAIL_TEMPLATE_BODY_JSON));
+
   }
 
 }

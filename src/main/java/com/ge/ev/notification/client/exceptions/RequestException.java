@@ -3,15 +3,15 @@ package com.ge.ev.notification.client.exceptions;
 /**
  * Created by 212391398 on 5/1/17.
  */
-public class RequestException extends Exception {
+public class RequestException extends NotificationClientException {
 
   private String url;
   private int status;
   private String statusMessage;
 
-  public RequestException(String message, String url, int status, String statusMessage)
+  public RequestException(String message, String details,  String url, int status, String statusMessage)
   {
-    super(message);
+    super(message, details);
     this.url = url;
     this.status = status;
     this.statusMessage = statusMessage;
