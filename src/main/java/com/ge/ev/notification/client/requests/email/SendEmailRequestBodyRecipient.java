@@ -10,7 +10,7 @@ public class SendEmailRequestBodyRecipient extends JsonObject {
 
   private String email;
 
-  private String type;
+  private RecipientType type;
 
   public SendEmailRequestBodyRecipient(SendEmailRequestBodyRecipientBuilder builder) {
     this.recipientName = builder.getRecipientName();
@@ -28,7 +28,7 @@ public class SendEmailRequestBodyRecipient extends JsonObject {
     return email;
   }
 
-  public String getType ()
+  public RecipientType getType ()
   {
     return type;
   }
@@ -39,9 +39,9 @@ public class SendEmailRequestBodyRecipient extends JsonObject {
 
     private String email;
 
-    private String type;
+    private RecipientType type;
 
-    public SendEmailRequestBodyRecipientBuilder(String recipientName, String email, String type) {
+    public SendEmailRequestBodyRecipientBuilder(String recipientName, String email, RecipientType type) {
       this.recipientName = recipientName;
       this.email = email;
       this.type = type;
@@ -65,11 +65,11 @@ public class SendEmailRequestBodyRecipient extends JsonObject {
       return this;
     }
 
-    public String getType() {
+    public RecipientType getType() {
       return type;
     }
 
-    public SendEmailRequestBodyRecipientBuilder setType(String type) {
+    public SendEmailRequestBodyRecipientBuilder setType(RecipientType type) {
       this.type = type;
       return this;
     }

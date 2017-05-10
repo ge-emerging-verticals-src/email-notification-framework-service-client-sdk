@@ -39,7 +39,7 @@ public class UploadTemplateRequest extends TemplateRequest {
         .addPart(FILE_PARAMETER_KEY, new ByteArrayBody(bytes, ContentType.MULTIPART_FORM_DATA, TMP_FILENAME))
         .build();
 
-    this.uploadTemplateRequestBody = builder.getUploadTemplateRequestBody();
+    this.notificationRequestBody =  this.uploadTemplateRequestBody = builder.getUploadTemplateRequestBody();
     post.setEntity( entity );
     super.requestBase = post;
   }

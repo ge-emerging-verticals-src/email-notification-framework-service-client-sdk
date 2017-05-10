@@ -1,6 +1,5 @@
 package com.ge.ev.notification.client.requests.configuration;
 
-import com.ge.ev.notification.client.util.JsonSerializableArrayList;
 import java.io.UnsupportedEncodingException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -10,41 +9,40 @@ import org.apache.http.entity.StringEntity;
  */
 public class CreateConfigurationRequest extends ConfigurationsRequest {
 
-  JsonSerializableArrayList<ConfigurationRequestBody> configurationRequestBodies;
-
-  public JsonSerializableArrayList<ConfigurationRequestBody> getConfigurationRequestBodies() {
-    return configurationRequestBodies;
-  }
+  CreateConfigurationRequestBody createConfigurationRequestBody;
 
   protected CreateConfigurationRequest(CreateConfigurationRequestBuilder builder) {
     super(builder);
 
     HttpPost post = new HttpPost(getRequestUrl());
-    this.configurationRequestBodies = builder.getConfigurationRequestBodies();
+     this.notificationRequestBody =  this.createConfigurationRequestBody = builder.getCreateConfigurationRequestBody();
     try {
-      post.setEntity(new StringEntity( this.configurationRequestBodies.toJson() ));
+      post.setEntity(new StringEntity( this.createConfigurationRequestBody.toJson() ));
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
     super.requestBase = post;
   }
 
+  public CreateConfigurationRequestBody getCreateConfigurationRequestBody() {
+    return createConfigurationRequestBody;
+  }
+
   public static class CreateConfigurationRequestBuilder extends ConfigurationsRequestBuilder
   {
-    protected JsonSerializableArrayList<ConfigurationRequestBody> configurationRequestBodies;
+    protected CreateConfigurationRequestBody createConfigurationRequestBody;
 
     public CreateConfigurationRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
       super(baseUrl, version, tenantUuid);
-      configurationRequestBodies = new JsonSerializableArrayList<>();
     }
 
-    public JsonSerializableArrayList<ConfigurationRequestBody> getConfigurationRequestBodies() {
-      return configurationRequestBodies;
+    public CreateConfigurationRequestBody getCreateConfigurationRequestBody() {
+      return createConfigurationRequestBody;
     }
 
-    public CreateConfigurationRequestBuilder addConfigurationRequestBody(ConfigurationRequestBody configurationRequestBody) {
-      this.configurationRequestBodies.add(configurationRequestBody);
+    public CreateConfigurationRequestBuilder setCreateConfigurationRequestBody(CreateConfigurationRequestBody createConfigurationRequestBody) {
+      this.createConfigurationRequestBody = createConfigurationRequestBody;
       return this;
     }
 

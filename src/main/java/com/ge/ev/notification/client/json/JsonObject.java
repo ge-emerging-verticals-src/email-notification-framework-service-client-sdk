@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Created by 212391398 on 5/1/17.
- */
 public class JsonObject implements Serializable {
+
+   private static final Logger _logger = LoggerFactory.getLogger(JsonObject.class);
    private static final ObjectMapper mapper = new ObjectMapper();
 
    public String toJson()
@@ -17,7 +18,7 @@ public class JsonObject implements Serializable {
       try {
          return mapper.writeValueAsString(this);
       } catch (JsonProcessingException e) {
-         e.printStackTrace();
+         _logger.error(e.getMessage());
       }
       return "{}";
    }
@@ -27,7 +28,7 @@ public class JsonObject implements Serializable {
       try {
          return mapper.readValue(json, clazz);
       } catch (IOException e) {
-         e.printStackTrace();
+         _logger.error(e.getMessage());
       }
       return null;
    }
@@ -37,7 +38,7 @@ public class JsonObject implements Serializable {
       try {
          return mapper.readValue(mapper.writeValueAsString(map), clazz);
       } catch (IOException e) {
-         e.printStackTrace();
+         _logger.error(e.getMessage());
       }
       return null;
    }

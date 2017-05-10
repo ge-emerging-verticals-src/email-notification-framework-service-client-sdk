@@ -11,21 +11,22 @@ import com.ge.ev.notification.client.domain.Tenant;
 import com.ge.ev.notification.client.exceptions.NotificationClientException;
 import com.ge.ev.notification.client.exceptions.RequestException;
 import com.ge.ev.notification.client.requests.NotificationRequest;
-import com.ge.ev.notification.client.requests.configuration.ConfigurationRequestBody;
+import com.ge.ev.notification.client.requests.configuration.CreateConfigurationRequestBody;
 import com.ge.ev.notification.client.requests.configuration.ConfigurationsRequest;
 import com.ge.ev.notification.client.requests.configuration.CreateConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.DeleteConfigurationRequest;
 import com.ge.ev.notification.client.requests.configuration.GetConfigurationsRequest;
 import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationRequest;
+import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationRequestBody;
 import com.ge.ev.notification.client.requests.email.SendEmailRequest;
 import com.ge.ev.notification.client.requests.email.SendEmailRequestBody;
+import com.ge.ev.notification.client.requests.email.SendTemplateEmailRequestBody;
 import com.ge.ev.notification.client.requests.event.GetEventsRequest;
 import com.ge.ev.notification.client.requests.template.CreateMatchersRequest;
-import com.ge.ev.notification.client.requests.template.CreateMatchersRequestBody;
+import com.ge.ev.notification.client.requests.template.MatchersRequestBody;
 import com.ge.ev.notification.client.requests.template.CreateRecipientsRequest;
 import com.ge.ev.notification.client.requests.template.CreateRecipientsRequestBody;
 import com.ge.ev.notification.client.requests.template.CreateTemplateRequest;
-import com.ge.ev.notification.client.requests.template.CreateTemplateRequestBody;
 import com.ge.ev.notification.client.requests.template.DeleteMatcherRequest;
 import com.ge.ev.notification.client.requests.template.DeleteRecipientsRequest;
 import com.ge.ev.notification.client.requests.template.DeleteTemplateRequest;
@@ -35,6 +36,7 @@ import com.ge.ev.notification.client.requests.template.GetTemplateRequest;
 import com.ge.ev.notification.client.requests.template.MatchersRequest;
 import com.ge.ev.notification.client.requests.template.RecipientsRequest;
 import com.ge.ev.notification.client.requests.template.TemplateRequest;
+import com.ge.ev.notification.client.requests.template.TemplateRequestBody;
 import com.ge.ev.notification.client.requests.template.UploadTemplateRequest;
 import com.ge.ev.notification.client.requests.template.UploadTemplateRequestBody;
 import com.ge.ev.notification.client.requests.tenant.GetTenantRequest;
@@ -44,6 +46,7 @@ import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRe
 import com.ge.ev.notification.client.response.NotificationServiceResponse;
 import com.ge.ev.notification.client.response.SendEmailResponse;
 import com.ge.ev.notification.status.NotificationServiceResponseStatus;
+import com.ge.ev.notification.vcap.domain.NotificationServiceEnvironmentElement;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,6 +73,8 @@ public class NotificationServiceClient implements NotificationService {
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
+  private static final String NULL_PARAMETER_EXCEPTION_MESSAGE = "Required paramter is null";
+
   private String tenantUuid = null;
   private String version = null;
   private String baseUrl = null;
@@ -84,11 +89,9 @@ public class NotificationServiceClient implements NotificationService {
   public String getTenantUuid() {
     return tenantUuid;
   }
-
   public String getVersion() {
     return version;
   }
-
   public String getBaseUrl() {
     return baseUrl;
   }
@@ -135,12 +138,10 @@ public class NotificationServiceClient implements NotificationService {
 
             _logger.debug( notificationServiceResponse.toJson() );
 
-            Long status = notificationServiceResponse.getStatus();
-
-            if ( !status.equals(NotificationServiceResponseStatus.Ok.getValue()) &&
-                !status.equals(NotificationServiceResponseStatus.NotificationEmailMessageQueued.getValue()) )
+            if ( requestReturnedError(notificationServiceResponse)  )
             {
-              throw new RequestException(notificationServiceResponse.getMessage(), notificationServiceResponse.getPayload().toString(), notificationRequest.getRequestUrl(), notificationServiceResponse.getStatus().intValue(), notificationServiceResponse.getMessage());
+              String details = notificationServiceResponse.getPayload() != null ? notificationServiceResponse.getPayload().toString() : null;
+              throw new RequestException(notificationServiceResponse.getMessage(), details, notificationRequest.getRequestUrl(), notificationServiceResponse.getStatus().intValue(), notificationServiceResponse.getMessage());
             }
           }
       }
@@ -158,6 +159,13 @@ public class NotificationServiceClient implements NotificationService {
     }
 
     return notificationServiceResponse;
+  }
+
+  private boolean requestReturnedError(NotificationServiceResponse notificationServiceResponse)
+  {
+    Long status = notificationServiceResponse.getStatus();
+    return  (!status.equals(NotificationServiceResponseStatus.Ok.getValue()) &&
+             !status.equals(NotificationServiceResponseStatus.NotificationEmailMessageQueued.getValue()));
   }
 
   @Override
@@ -182,10 +190,9 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Configuration> getConfigurations(String token, String configurationUuid) throws RequestException, NotificationClientException{
+  public List<Configuration> getConfigurations(String token) throws RequestException, NotificationClientException{
 
     GetConfigurationsRequest getConfigurationsRequest = new GetConfigurationsRequest.GetConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setConfigurationUuid(configurationUuid)
         .setToken(token)
         .build();
 
@@ -193,54 +200,107 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Configuration> createConfiguration(String token, ConfigurationRequestBody configurationRequestBody) throws RequestException, NotificationClientException
+  public Configuration createConfiguration(String token, CreateConfigurationRequestBody createConfigurationRequestBody) throws RequestException, NotificationClientException
   {
+    Configuration configuration;
     CreateConfigurationRequest createConfigurationRequest = new CreateConfigurationRequest.CreateConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .addConfigurationRequestBody(configurationRequestBody)
+        .setCreateConfigurationRequestBody(createConfigurationRequestBody)
         .setToken(token)
         .build();
 
-    if (createConfigurationRequest.getConfigurationRequestBodies() != null) {
-      for (ConfigurationRequestBody configurationRequestBody1 : createConfigurationRequest.getConfigurationRequestBodies()) {
-        _logger.debug(configurationRequestBody1.toJson());
-      }
+    if (createConfigurationRequest.getCreateConfigurationRequestBody() != null) {
+      _logger.debug(createConfigurationRequest.getCreateConfigurationRequestBody().toJson());
     }
 
-    return sendConfigurationRequest(createConfigurationRequest);
+    List<Configuration> configurations = sendConfigurationRequest(createConfigurationRequest);
+    configuration = configurations != null ? configurations.get(0) : null;
+
+    return configuration;
   }
 
   @Override
-  public List<Configuration> updateConfiguration(String token, String configurationUuid, ConfigurationRequestBody configurationRequestBody)  throws RequestException, NotificationClientException {
+  public Configuration updateConfiguration(String token, Configuration configuration, UpdateConfigurationRequestBody updateConfigurationRequestBody)  throws RequestException, NotificationClientException {
+    Configuration returnConfiguration = null;
+
+    if (configuration == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Configuration parameter is null");
+    }
+
+    if (updateConfigurationRequestBody == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "UpdateConfigurationRequestBody parameter is null");
+    }
+
     UpdateConfigurationRequest updateConfigurationRequest = new UpdateConfigurationRequest.UpdateConfigurationRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setConfigurationUuid(configurationUuid)
-        .setConfigurationRequestBody(configurationRequestBody)
+        .setConfigurationUuid(configuration.getUuid())
+        .setUpdateConfigurationRequestBody(updateConfigurationRequestBody)
         .setToken(token)
         .build();
 
-    return sendConfigurationRequest(updateConfigurationRequest);
+
+    List<Configuration> configurations = sendConfigurationRequest(updateConfigurationRequest);
+
+    if (configurations != null)
+    {
+      returnConfiguration = configurations.get(0);
+    }
+
+    return returnConfiguration;
   }
 
   @Override
-  public List<Configuration> deleteConfiguration(String token, String configurationUuid) throws RequestException, NotificationClientException {
+  public Configuration deleteConfiguration(String token, Configuration configuration) throws RequestException, NotificationClientException {
+
+    Configuration returnConfiguration = null;
+
+    if (configuration == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Configuration parameter is null");
+    }
 
     DeleteConfigurationRequest deleteConfigurationRequest = new DeleteConfigurationRequest.DeleteConfigurationsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setConfigurationUuid(configurationUuid)
+        .setConfigurationUuid(configuration.getUuid())
         .setToken(token)
         .build();
 
-    return sendConfigurationRequest(deleteConfigurationRequest);
+    List<Configuration> configurations  =  sendConfigurationRequest(deleteConfigurationRequest);
+
+    if (configurations != null)
+    {
+      returnConfiguration = configurations.get(0);
+    }
+
+    return returnConfiguration;
   }
 
   @Override
-  public SendEmailResponse sendEmail(String token, String configurationUuid, SendEmailRequestBody sendEmailRequestBody, String templateUuid) throws RequestException, NotificationClientException {
-     SendEmailResponse sendEmailResponse = null;
-    if (sendEmailRequestBody != null) {
-      _logger.debug(sendEmailRequestBody.toJson());
+  public SendEmailResponse sendTemplateEmail(String token, Configuration configuration,  Template template, SendTemplateEmailRequestBody sendTemplateEmailRequestBody) throws RequestException, NotificationClientException {
+    SendEmailResponse sendEmailResponse = null;
+
+    if (configuration == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Configuration parameter is null");
     }
 
-    SendEmailRequest sendEmailRequest = new SendEmailRequest.SendEmailRequestBuilder(this.baseUrl, this.version, this.tenantUuid, configurationUuid)
-        .setSendEmailRequestBody(sendEmailRequestBody)
-        .setTemplateUuid(templateUuid)
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
+
+    if (sendTemplateEmailRequestBody == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "SendTemplateEmailRequestBody parameter is null");
+    }
+
+
+    if (sendTemplateEmailRequestBody != null) {
+      _logger.debug(sendTemplateEmailRequestBody.toJson());
+    }
+
+    SendEmailRequest sendEmailRequest = new SendEmailRequest.SendEmailRequestBuilder(this.baseUrl, this.version, this.tenantUuid, configuration.getUuid())
+        .setSendEmailRequestBody(sendTemplateEmailRequestBody)
+        .setTemplateUuid(template.getTemplateUuid())
         .setToken(token)
         .build();
 
@@ -254,6 +314,40 @@ public class NotificationServiceClient implements NotificationService {
 
     return sendEmailResponse;
   }
+
+  @Override
+  public SendEmailResponse sendEmail(String token, Configuration configuration, SendEmailRequestBody sendEmailRequestBody) throws RequestException, NotificationClientException {
+    SendEmailResponse sendEmailResponse = null;
+    if (sendEmailRequestBody != null) {
+      _logger.debug(sendEmailRequestBody.toJson());
+    }
+
+    if (configuration == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Configuration parameter is null");
+    }
+
+    if (sendEmailRequestBody == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "SendEmailRequestBody parameter is null");
+    }
+
+    SendEmailRequest sendEmailRequest = new SendEmailRequest.SendEmailRequestBuilder(this.baseUrl, this.version, this.tenantUuid, configuration.getUuid())
+        .setSendEmailRequestBody(sendEmailRequestBody)
+        .setToken(token)
+        .build();
+
+    NotificationServiceResponse notificationServiceResponse = sendRequest(sendEmailRequest);
+    _logger.debug(notificationServiceResponse.toJson());
+
+    if (notificationServiceResponse != null)
+    {
+      sendEmailResponse = SendEmailResponse.toObject((LinkedHashMap) notificationServiceResponse.getPayload());
+    }
+
+    return sendEmailResponse;
+  }
+
 
   @Override
   public List<NotificationEvent> getEvents(String token, String notificationReferenceUuid) throws RequestException, NotificationClientException {
@@ -285,10 +379,9 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Template> getTemplates(String token, String templateUuid) throws RequestException, NotificationClientException {
+  public List<Template> getTemplates(String token) throws RequestException, NotificationClientException {
 
     GetTemplateRequest getTemplateRequest = new GetTemplateRequest.GetTemplateRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setTemplateUuid(templateUuid)
         .setToken(token)
         .build();
 
@@ -296,9 +389,11 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Template> createTemplate(String token, CreateTemplateRequestBody createTemplateRequestBody, InputStream templateFileInputStream) throws RequestException, NotificationClientException {
+  public Template createTemplate(String token, TemplateRequestBody templateRequestBody, InputStream templateFileInputStream) throws RequestException, NotificationClientException {
+    Template template = null;
+
     CreateTemplateRequest createTemplateRequest = new CreateTemplateRequest.CreateTemplateRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setCreateTemplateRequestBody(createTemplateRequestBody)
+        .setTemplateRequestBody(templateRequestBody)
         .setToken(token)
         .build();
 
@@ -318,26 +413,47 @@ public class NotificationServiceClient implements NotificationService {
       templates = sendTemplateRequest(uploadTemplateRequest);
     }
 
-    return templates;
+    if (templates != null)
+    {
+      template = templates.get(0);
+    }
+
+    return template;
   }
 
   @Override
-  public List<Template> deleteTemplate(String token, String templateUuid) throws RequestException, NotificationClientException {
+  public Template deleteTemplate(String token, Template template) throws RequestException, NotificationClientException {
+
+    Template returnTemplate = null;
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
 
     DeleteTemplateRequest deleteTemplateRequest = new DeleteTemplateRequest.DeleteTemplateRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setTemplateUuid(templateUuid)
+        .setTemplateUuid(template.getTemplateUuid())
         .setToken(token)
         .build();
 
-    return sendTemplateRequest(deleteTemplateRequest);
+    List<Template> templates = sendTemplateRequest(deleteTemplateRequest);
+    if (templates != null) {
+      returnTemplate = templates.get(0);
+    }
+
+    return returnTemplate;
   }
 
   @Override
-  public List<Matcher> getMatchers(String token, String templateUuid, String matcherUuid) throws RequestException, NotificationClientException {
+  public List<Matcher> getMatchers(String token, Template template) throws RequestException, NotificationClientException {
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
 
     GetMatcherRequest getMatcherRequest = new GetMatcherRequest.GetMatcherRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setMatcherUuid(matcherUuid)
-        .setTemplateUuid(templateUuid)
+        .setTemplateUuid(template.getTemplateUuid())
         .setToken(token)
         .build();
 
@@ -346,35 +462,82 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Matcher> createMatcher(String token, String templateUuid, CreateMatchersRequestBody createMatchersRequestBody) throws RequestException, NotificationClientException {
+  public Matcher createMatcher(String token, Template template, MatchersRequestBody matchersRequestBody) throws RequestException, NotificationClientException {
+
+    Matcher matcher = null;
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
+
+    if (matchersRequestBody == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "MatchersRequestBody is null");
+    }
 
     CreateMatchersRequest createMatchersRequest = new CreateMatchersRequest.CreateMatchersRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setCreateMatchersRequestBody(createMatchersRequestBody)
-        .setTemplateUuid(templateUuid)
+        .setMatchersRequestBody(matchersRequestBody)
+        .setTemplateUuid(template.getTemplateUuid())
         .setToken(token)
         .build();
 
-    return sendMatchersRequest(createMatchersRequest);
+    List<Matcher> matchers =  sendMatchersRequest(createMatchersRequest);
+
+    if (matchers != null)
+    {
+      matcher = matchers.get(0);
+    }
+
+    return matcher;
   }
 
   @Override
-  public List<Matcher> deleteMatcher(String token, String templateUuid, String matcherUuid) throws RequestException, NotificationClientException {
+  public Matcher deleteMatcher(String token, Template template, Matcher matcher) throws RequestException, NotificationClientException {
 
+    Matcher returnMatcher = null;
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
+
+    if (matcher == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Matcher parameter is null");
+    }
+    
     DeleteMatcherRequest deleteMatcherRequest = new DeleteMatcherRequest.DeleteMatchersRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setTemplateUuid(templateUuid)
-        .setMatcherUuid(matcherUuid)
+        .setTemplateUuid(template.getTemplateUuid())
+        .setMatcherUuid(matcher.getMatchersUuid())
         .setToken(token)
         .build();
 
-    return sendMatchersRequest(deleteMatcherRequest);
+    List<Matcher> matchers =  sendMatchersRequest(deleteMatcherRequest);
+    if (matchers != null)
+    {
+      returnMatcher = matchers.get(0);
+    }
+
+    return returnMatcher;
   }
 
   @Override
-  public List<Recipient> getRecipients(String token, String templateUuid, String matcherUuid, String recipientUuid) throws RequestException, NotificationClientException {
+  public List<Recipient> getRecipients(String token, Template template, Matcher matcher) throws RequestException, NotificationClientException {
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
+
+    if (matcher == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Matcher parameter is null");
+    }
+
     GetRecipientsRequest getRecipientsRequest = new GetRecipientsRequest.GetRecipientsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setMatcherUuid(matcherUuid)
-        .setTemplateUuid(templateUuid)
-        .setRecipientUuid(recipientUuid)
+        .setMatcherUuid(matcher.getMatchersUuid())
+        .setTemplateUuid(template.getTemplateUuid())
         .setToken(token)
         .build();
 
@@ -382,11 +545,27 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Recipient> createRecipients(String token, String templateUuid, String matcherUuid, CreateRecipientsRequestBody createRecipientsRequestBody) throws RequestException, NotificationClientException {
+  public List<Recipient> createRecipients(String token, Template template, Matcher matcher, CreateRecipientsRequestBody createRecipientsRequestBody) throws RequestException, NotificationClientException {
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
+
+    if (matcher == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Matcher parameter is null");
+    }
+
+    if (createRecipientsRequestBody == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "CreateRecipientsRequestBody parameter is null");
+    }
+
     CreateRecipientsRequest createRecipientsRequest = new CreateRecipientsRequest.CreateRecipientsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
         .setCreateRecipientsRequestBody(createRecipientsRequestBody)
-        .setTemplateUuid(templateUuid)
-        .setMatcherUuid(matcherUuid)
+        .setTemplateUuid(template.getTemplateUuid())
+        .setMatcherUuid(matcher.getMatchersUuid())
         .setToken(token)
         .build();
 
@@ -394,16 +573,40 @@ public class NotificationServiceClient implements NotificationService {
   }
 
   @Override
-  public List<Recipient> deleteRecipient(String token, String templateUuid, String matcherUuid, String recipientUuid) throws RequestException, NotificationClientException {
+  public Recipient deleteRecipient(String token, Template template, Matcher matcher, Recipient recipient) throws RequestException, NotificationClientException {
+
+    Recipient returnRecipient = null;
+
+    if (template == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Template parameter is null");
+    }
+
+    if (matcher == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Matcher parameter is null");
+    }
+
+    if (recipient == null)
+    {
+      throw new NotificationClientException(NULL_PARAMETER_EXCEPTION_MESSAGE, "Recipient parameter is null");
+    }
 
     DeleteRecipientsRequest deleteRecipientsRequest = new DeleteRecipientsRequest.DeleteRecipientsRequestBuilder(this.baseUrl, this.version, this.tenantUuid)
-        .setTemplateUuid(templateUuid)
-        .setMatcherUuid(matcherUuid)
-        .setRecipientUuid(recipientUuid)
+        .setTemplateUuid(template.getTemplateUuid())
+        .setMatcherUuid(matcher.getMatchersUuid())
+        .setRecipientUuid(recipient.getRecipientUuid())
         .setToken(token)
         .build();
 
-    return sendRecipientsRequest(deleteRecipientsRequest);
+    List<Recipient> recipients =  sendRecipientsRequest(deleteRecipientsRequest);
+
+    if (recipients != null)
+    {
+      returnRecipient = recipients.get(0);
+    }
+
+    return returnRecipient;
   }
 
   private List<Recipient> sendRecipientsRequest(RecipientsRequest recipientsRequest)throws RequestException, NotificationClientException
@@ -542,7 +745,14 @@ public class NotificationServiceClient implements NotificationService {
     protected String baseUrl;
     protected String version;
 
-    public NotificationServiceClientBuilder() {}
+    public NotificationServiceClientBuilder(NotificationServiceEnvironmentElement notificationServiceEnvironmentElement) {
+      if (notificationServiceEnvironmentElement != null)
+      {
+        setTenantUuid(notificationServiceEnvironmentElement.getCredentials().getTenantUuid());
+        setBaseUrl(notificationServiceEnvironmentElement.getCredentials().getCatalogUri());
+        setVersion(notificationServiceEnvironmentElement.getCredentials().getVersion());
+      }
+    }
 
     public String getTenantUuid() {
       return tenantUuid;

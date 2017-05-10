@@ -10,16 +10,16 @@ import org.apache.http.entity.StringEntity;
  */
 public class CreateTemplateRequest extends TemplateRequest{
 
-  protected CreateTemplateRequestBody createTemplateRequestBody;
+  protected TemplateRequestBody templateRequestBody;
 
   protected CreateTemplateRequest(CreateTemplateRequestBuilder builder) {
     super(builder);
     this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
     HttpPost post= new HttpPost(getRequestUrl());
-    this.createTemplateRequestBody = builder.getCreateTemplateRequestBody();
+    this.notificationRequestBody =  this.templateRequestBody = builder.getTemplateRequestBody();
 
     try {
-      post.setEntity(new StringEntity( this.createTemplateRequestBody.toJson() ));
+      post.setEntity(new StringEntity( this.templateRequestBody.toJson() ));
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -28,20 +28,20 @@ public class CreateTemplateRequest extends TemplateRequest{
 
   public static class CreateTemplateRequestBuilder extends TemplateRequestBuilder
   {
-    private CreateTemplateRequestBody createTemplateRequestBody;
+    protected TemplateRequestBody templateRequestBody;
 
     public CreateTemplateRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
       super(baseUrl, version, tenantUuid);
     }
 
-    public CreateTemplateRequestBody getCreateTemplateRequestBody() {
-      return createTemplateRequestBody;
+    public TemplateRequestBody getTemplateRequestBody() {
+      return templateRequestBody;
     }
 
-    public CreateTemplateRequestBuilder setCreateTemplateRequestBody(
-        CreateTemplateRequestBody createTemplateRequestBody) {
-      this.createTemplateRequestBody = createTemplateRequestBody;
+    public CreateTemplateRequestBuilder setTemplateRequestBody(
+        TemplateRequestBody templateRequestBody) {
+      this.templateRequestBody = templateRequestBody;
       return this;
     }
 

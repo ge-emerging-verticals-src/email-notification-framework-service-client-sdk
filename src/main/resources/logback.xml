@@ -8,7 +8,7 @@
     </encoder>
   </appender>
 
-  <logger name="com.ge" level="ERROR"/>
+  <logger name="com.ge" level="DEBUG"/>
   <logger name="org.apache" level="ERROR"/>
 
   <root level="ERROR">

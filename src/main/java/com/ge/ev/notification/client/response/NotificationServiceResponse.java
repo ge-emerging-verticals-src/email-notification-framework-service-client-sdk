@@ -43,18 +43,7 @@ public class NotificationServiceResponse extends JsonObject {
     {
       return uuid;
     }
-
-  @Override
-  public String toString() {
-    return "NotificationServiceResponse{" +
-        "timestamp='" + timestamp + '\'' +
-        ", message='" + message + '\'' +
-        ", status='" + status + '\'' +
-        ", payload='" + payload + '\'' +
-        ", uuid='" + uuid + '\'' +
-        '}';
-  }
-
+  
   public static NotificationServiceResponse toObject(String json)
   {
     return JsonObject.toObject(json, NotificationServiceResponse.class);

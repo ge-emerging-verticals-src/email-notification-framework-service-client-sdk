@@ -7,13 +7,14 @@ import org.apache.http.entity.StringEntity;
 /**
  * Created by 212391398 on 5/2/17.
  */
-public class UpdateConfigurationRequest extends CreateConfigurationRequest {
+public class UpdateConfigurationRequest extends ConfigurationsRequest  {
+  UpdateConfigurationRequestBody  updateConfigurationRequestBody;
 
   protected UpdateConfigurationRequest(UpdateConfigurationRequestBuilder builder) {
     super(builder);
     HttpPut put = new HttpPut(getRequestUrl());
 
-    this.notificationRequestBody = builder.getConfigurationRequestBody();
+    this.notificationRequestBody = this.updateConfigurationRequestBody = builder.getUpdateConfigurationRequestBody();
 
     try {
       put.setEntity(new StringEntity(this.notificationRequestBody.toJson()));
@@ -23,21 +24,25 @@ public class UpdateConfigurationRequest extends CreateConfigurationRequest {
     super.requestBase = put;
   }
 
-  public static class UpdateConfigurationRequestBuilder extends CreateConfigurationRequestBuilder
+  public UpdateConfigurationRequestBody getUpdateConfigurationRequestBody() {
+    return this.updateConfigurationRequestBody;
+  }
+
+  public static class UpdateConfigurationRequestBuilder extends ConfigurationsRequestBuilder
   {
-    ConfigurationRequestBody configurationRequestBody;
+    UpdateConfigurationRequestBody updateConfigurationRequestBody;
 
     public UpdateConfigurationRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
       super(baseUrl, version, tenantUuid);
     }
 
-    public ConfigurationRequestBody getConfigurationRequestBody() {
-      return configurationRequestBody;
+    public UpdateConfigurationRequestBody getUpdateConfigurationRequestBody() {
+      return updateConfigurationRequestBody;
     }
 
-    public UpdateConfigurationRequestBuilder setConfigurationRequestBody(ConfigurationRequestBody configurationRequestBody) {
-      this.configurationRequestBody = configurationRequestBody;
+    public UpdateConfigurationRequestBuilder setUpdateConfigurationRequestBody(UpdateConfigurationRequestBody updateConfigurationRequestBody) {
+      this.updateConfigurationRequestBody = updateConfigurationRequestBody;
       return this;
     }
 

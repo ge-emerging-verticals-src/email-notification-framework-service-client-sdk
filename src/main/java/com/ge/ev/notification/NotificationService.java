@@ -8,11 +8,13 @@ import com.ge.ev.notification.client.domain.Template;
 import com.ge.ev.notification.client.domain.Tenant;
 import com.ge.ev.notification.client.exceptions.NotificationClientException;
 import com.ge.ev.notification.client.exceptions.RequestException;
-import com.ge.ev.notification.client.requests.configuration.ConfigurationRequestBody;
+import com.ge.ev.notification.client.requests.configuration.CreateConfigurationRequestBody;
+import com.ge.ev.notification.client.requests.configuration.UpdateConfigurationRequestBody;
 import com.ge.ev.notification.client.requests.email.SendEmailRequestBody;
-import com.ge.ev.notification.client.requests.template.CreateMatchersRequestBody;
+import com.ge.ev.notification.client.requests.email.SendTemplateEmailRequestBody;
+import com.ge.ev.notification.client.requests.template.MatchersRequestBody;
 import com.ge.ev.notification.client.requests.template.CreateRecipientsRequestBody;
-import com.ge.ev.notification.client.requests.template.CreateTemplateRequestBody;
+import com.ge.ev.notification.client.requests.template.TemplateRequestBody;
 import com.ge.ev.notification.client.requests.tenant.UpdateTenantConfigurationRequestBody;
 import com.ge.ev.notification.client.response.SendEmailResponse;
 import java.io.IOException;
@@ -42,51 +44,57 @@ public interface NotificationService {
   /**
    *
    * @param token
-   * @param configurationUuid
    * @return
    */
-  List<Configuration> getConfigurations(String token, String configurationUuid) throws  RequestException, NotificationClientException;
+  List<Configuration> getConfigurations(String token) throws RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param configurationRequestBody
-   * @return
-   * @throws IOException
-   * @throws RequestException
-   */
-  List<Configuration> createConfiguration(String token, ConfigurationRequestBody configurationRequestBody) throws RequestException, NotificationClientException;
-
-  /**
-   *
-   * @param token
-   * @param configurationUuid
-   * @param configurationRequestBody
+   * @param createConfigurationRequestBody
    * @return
    * @throws IOException
    * @throws RequestException
    */
-  List<Configuration> updateConfiguration(String token, String configurationUuid, ConfigurationRequestBody configurationRequestBody) throws RequestException, NotificationClientException;
+  Configuration createConfiguration(String token, CreateConfigurationRequestBody createConfigurationRequestBody) throws RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param configurationUuid
+   * @param configuration
+   * @param updateConfigurationRequestBody
+   * @return
+   * @throws IOException
+   * @throws RequestException
+   */
+  Configuration updateConfiguration(String token, Configuration configuration, UpdateConfigurationRequestBody updateConfigurationRequestBody) throws RequestException, NotificationClientException;
+
+  /**
+   *
+   * @param token
+   * @param configuration
    * @return
    * @throws IOException
    * @throws RequestException
    * @throws NotificationClientException
    */
-  List<Configuration> deleteConfiguration(String token, String configurationUuid) throws  RequestException, NotificationClientException;
+  Configuration deleteConfiguration(String token, Configuration configuration) throws  RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param configurationUuid
+   * @param configuration
    * @return
    */
-  SendEmailResponse sendEmail(String token, String configurationUuid, SendEmailRequestBody sendEmailRequestBody, String templateUuid) throws RequestException, NotificationClientException;
+  SendEmailResponse sendEmail(String token, Configuration configuration, SendEmailRequestBody sendEmailRequestBody) throws RequestException, NotificationClientException;
 
+  /**
+   *
+   * @param token
+   * @param configuration
+   * @return
+   */
+  SendEmailResponse sendTemplateEmail(String token, Configuration configuration,  Template template, SendTemplateEmailRequestBody sendTemplateEmailRequestBody) throws RequestException, NotificationClientException;
 
   /**
    * 
@@ -98,107 +106,104 @@ public interface NotificationService {
    */
   List<NotificationEvent> getEvents(String token, String notificationReferenceUuid) throws RequestException, NotificationClientException;
 
-
   /**
    *
    * @param token
-   * @param templateUuid
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-   List<Template> getTemplates(String token, String templateUuid) throws RequestException, NotificationClientException;
+   List<Template> getTemplates(String token) throws RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param createTemplateRequestBody
+   * @param templateRequestBody
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-   List<Template> createTemplate(String token, CreateTemplateRequestBody createTemplateRequestBody, InputStream templateFileInputStream) throws RequestException, NotificationClientException;
+   Template createTemplate(String token, TemplateRequestBody templateRequestBody, InputStream templateFileInputStream) throws RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param templateUuid
+   * @param template
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-   List<Template> deleteTemplate(String token, String templateUuid) throws RequestException, NotificationClientException;
-
+   Template deleteTemplate(String token, Template template) throws RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param templateUUid
-   * @param matcherUuid
+   * @param template
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-   List<Matcher> getMatchers(String token, String templateUUid, String matcherUuid)  throws RequestException, NotificationClientException;
+   List<Matcher> getMatchers(String token, Template template)  throws RequestException, NotificationClientException;
+
 
   /**
    *
    * @param token
-   * @param createMatchersRequestBody
+   * @param template
+   * @param matchersRequestBody
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-   List<Matcher> createMatcher(String token, String templateUUid, CreateMatchersRequestBody createMatchersRequestBody) throws RequestException, NotificationClientException;
+   Matcher createMatcher(String token, Template template, MatchersRequestBody matchersRequestBody) throws RequestException, NotificationClientException;
 
 
   /**
    *
    * @param token
-   * @param templateUuid
-   * @param matcherUuid
+   * @param template
+   * @param matcher
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-  List<Matcher> deleteMatcher(String token, String templateUuid, String matcherUuid) throws RequestException, NotificationClientException;
+  Matcher deleteMatcher(String token, Template template, Matcher matcher) throws RequestException, NotificationClientException;
 
 
   /**
    *
    * @param token
-   * @param templateUuid
-   * @param matcherUuid
-   * @param recipientUuid
+   * @param template
+   * @param matcher
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-  List<Recipient> getRecipients(String token, String templateUuid, String matcherUuid, String recipientUuid )  throws RequestException, NotificationClientException;
+  List<Recipient> getRecipients(String token, Template template, Matcher matcher )  throws RequestException, NotificationClientException;
 
   /**
    *
    * @param token
-   * @param templateUuid
-   * @param matcherUuid
+   * @param template
+   * @param matcher
    * @param createRecipientsRequestBody
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-  List<Recipient> createRecipients(String token, String templateUuid, String matcherUuid, CreateRecipientsRequestBody createRecipientsRequestBody ) throws RequestException, NotificationClientException;
+  List<Recipient> createRecipients(String token, Template template, Matcher matcher, CreateRecipientsRequestBody createRecipientsRequestBody ) throws RequestException, NotificationClientException;
 
 
   /**
-   * 
+   *
    * @param token
-   * @param templateUuid
-   * @param matcherUuid
-   * @param recipientUuid
+   * @param template
+   * @param matcher
+   * @param recipient
    * @return
    * @throws RequestException
    * @throws NotificationClientException
    */
-  List<Recipient> deleteRecipient(String token, String templateUuid, String matcherUuid, String recipientUuid ) throws RequestException, NotificationClientException;
+  Recipient deleteRecipient(String token,  Template template, Matcher matcher,  Recipient recipient ) throws RequestException, NotificationClientException;
 
 }

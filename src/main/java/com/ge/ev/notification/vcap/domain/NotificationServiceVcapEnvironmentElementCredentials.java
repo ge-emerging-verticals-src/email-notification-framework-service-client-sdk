@@ -1,13 +1,14 @@
 package com.ge.ev.notification.vcap.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.io.Serializable;
+import com.ge.ev.notification.client.json.JsonObject;
+import java.util.HashMap;
 
 /**
  * Created by 212391398 on 4/18/17.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NotificationServiceVcapEnvironmentElementCredentials implements Serializable
+public class NotificationServiceVcapEnvironmentElementCredentials extends JsonObject
 {
   private String zoneOauthScope;
 
@@ -69,11 +70,14 @@ public class NotificationServiceVcapEnvironmentElementCredentials implements Ser
     this.trustedIssuerIds = trustedIssuerIds;
   }
 
-  @Override
-  public String toString()
+  public static NotificationServiceVcapEnvironmentElementCredentials toObject(String json)
   {
-    return "NotificationServiceVcapEnvironmentElementCredentials [zoneOauthScope = "+zoneOauthScope+", tenantUuid = "+tenantUuid+", catalogUri = "+catalogUri+", version = "+version+", trustedIssuerIds = "+trustedIssuerIds+"]";
+    return JsonObject.toObject(json, NotificationServiceVcapEnvironmentElementCredentials.class);
   }
-  
+
+  public static NotificationServiceVcapEnvironmentElementCredentials toObject(HashMap<String, Object> map)
+  {
+    return JsonObject.toObject(map, NotificationServiceVcapEnvironmentElementCredentials.class);
+  }
 
 }

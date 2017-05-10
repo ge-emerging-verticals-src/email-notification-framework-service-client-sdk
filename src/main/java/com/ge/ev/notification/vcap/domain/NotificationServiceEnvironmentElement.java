@@ -2,7 +2,8 @@ package com.ge.ev.notification.vcap.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import com.ge.ev.notification.client.json.JsonObject;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NotificationServiceEnvironmentElement implements Serializable  {
+public class NotificationServiceEnvironmentElement extends JsonObject {
   private List<String> tags;
 
   private String plan;
@@ -72,9 +73,14 @@ public class NotificationServiceEnvironmentElement implements Serializable  {
     this.label = label;
   }
 
-  @Override
-  public String toString()
+  public static NotificationServiceEnvironmentElement toObject(String json)
   {
-    return "NotificationServiceEnvironmentElement [tags = "+tags+", plan = "+plan+", name = "+name+", credentials = "+credentials+", label = "+label+"]";
+    return JsonObject.toObject(json, NotificationServiceEnvironmentElement.class);
   }
+
+  public static NotificationServiceEnvironmentElement toObject(HashMap<String, Object> map)
+  {
+    return JsonObject.toObject(map, NotificationServiceEnvironmentElement.class);
+  }
+
 }

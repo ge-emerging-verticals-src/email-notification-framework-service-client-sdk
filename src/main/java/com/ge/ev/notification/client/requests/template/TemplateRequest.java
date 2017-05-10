@@ -36,6 +36,7 @@ public class TemplateRequest extends NotificationRequestImpl {
   {
     protected String templateUuid;
 
+
     public TemplateRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
       super(baseUrl, version, tenantUuid);

@@ -10,17 +10,17 @@ import org.apache.http.entity.StringEntity;
  */
 public class CreateMatchersRequest extends MatchersRequest {
 
-  private CreateMatchersRequestBody createMatchersRequestBody;
+  private MatchersRequestBody matchersRequestBody;
 
   protected CreateMatchersRequest(CreateMatchersRequestBuilder builder) {
     super(builder);
 
     this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
     HttpPost post= new HttpPost(getRequestUrl());
-    this.createMatchersRequestBody = builder.getCreateMatchersRequestBody();
+    this.notificationRequestBody = this.matchersRequestBody = builder.getMatchersRequestBody();
 
     try {
-      post.setEntity(new StringEntity( this.createMatchersRequestBody.toJson() ));
+      post.setEntity(new StringEntity( this.matchersRequestBody.toJson() ));
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -29,20 +29,20 @@ public class CreateMatchersRequest extends MatchersRequest {
 
   public static class CreateMatchersRequestBuilder extends MatcherRequestBuilder
   {
-    private CreateMatchersRequestBody createMatchersRequestBody;
+    private MatchersRequestBody matchersRequestBody;
 
     public CreateMatchersRequestBuilder( String baseUrl, String version, String tenantUuid )
     {
       super(baseUrl, version, tenantUuid);
     }
 
-    public CreateMatchersRequestBody getCreateMatchersRequestBody() {
-      return createMatchersRequestBody;
+    public MatchersRequestBody getMatchersRequestBody() {
+      return matchersRequestBody;
     }
 
-    public CreateMatchersRequestBuilder setCreateMatchersRequestBody(
-        CreateMatchersRequestBody createMatchersRequestBody) {
-      this.createMatchersRequestBody = createMatchersRequestBody;
+    public CreateMatchersRequestBuilder setMatchersRequestBody(
+        MatchersRequestBody matchersRequestBody) {
+      this.matchersRequestBody = matchersRequestBody;
       return this;
     }
 

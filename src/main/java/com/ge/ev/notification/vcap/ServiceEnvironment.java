@@ -1,10 +1,9 @@
 package com.ge.ev.notification.vcap;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ge.ev.notification.client.json.JsonObject;
 import com.ge.ev.notification.vcap.domain.NotificationServiceEnvironmentElement;
 import com.ge.ev.notification.vcap.exceptions.ServiceEnvironmentException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,8 +15,6 @@ public class ServiceEnvironment {
 
   private final static String VCAP_SERVICES = "VCAP_SERVICES";
   private final static String NOTIFICATION_SEVICE_NAME = "notification";
-
-  private static ObjectMapper mapper = new ObjectMapper();
 
   List<NotificationServiceEnvironmentElement> notificationServiceEnvironmentElements = new ArrayList<>();
 
@@ -52,33 +49,21 @@ public class ServiceEnvironment {
     }
 
     LinkedHashMap<String, Object> vcapServicesMap = new LinkedHashMap<>();
-    try
-    {
-      vcapServicesMap = mapper.readValue(vcap , vcapServicesMap.getClass());
-    }
-    catch (IOException e)
-    {
-      throw new ServiceEnvironmentException("Could not parse VCAP Environment", vcap);
-    }
+    vcapServicesMap = JsonObject.toObject(vcap, vcapServicesMap.getClass());
 
-    List<LinkedHashMap<String, Object>> maps = (List<LinkedHashMap<String, Object>>) vcapServicesMap.get(NOTIFICATION_SEVICE_NAME);
-
-    if (maps != null)
-    {
+    if (vcapServicesMap != null) {
+      List<LinkedHashMap<String, Object>> maps = (List<LinkedHashMap<String, Object>>) vcapServicesMap
+          .get(NOTIFICATION_SEVICE_NAME);
+      if (maps != null) {
         for (LinkedHashMap<String, Object> m : maps) {
-          NotificationServiceEnvironmentElement notificationServiceEnvironmentElement;
-          try {
-            notificationServiceEnvironmentElement = mapper.readValue(mapper.writeValueAsString(m), NotificationServiceEnvironmentElement.class);
-          } catch (IOException e) {
-            throw new ServiceEnvironmentException("Could not parse VCAP Environment", m.toString());
-          }
+          NotificationServiceEnvironmentElement notificationServiceEnvironmentElement = NotificationServiceEnvironmentElement
+              .toObject(m);
           if (notificationServiceEnvironmentElement != null) {
             notificationServiceEnvironmentElements.add(notificationServiceEnvironmentElement);
           }
         }
+      }
     }
-
-
   }
 
 }

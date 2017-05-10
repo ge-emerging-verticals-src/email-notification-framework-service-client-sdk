@@ -17,7 +17,7 @@ public class CreateRecipientsRequest extends RecipientsRequest {
 
     this.headers.put(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON);
     HttpPost post= new HttpPost(getRequestUrl());
-    this.createRecipientsRequestBody = builder.getCreateRecipientsRequestBody();
+    this.notificationRequestBody = this.createRecipientsRequestBody = builder.getCreateRecipientsRequestBody();
 
     try {
       post.setEntity(new StringEntity( this.createRecipientsRequestBody.toJson() ));

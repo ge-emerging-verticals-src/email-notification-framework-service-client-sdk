@@ -11,7 +11,7 @@ public class UploadTemplateRequestBody extends JsonObject implements Notificatio
 
   private InputStream templateFileInputStream;
 
-  private  UploadTemplateRequestBody(UploadTemplateRequestBodyBuilder uploadTemplateRequestBodyBuilder)
+  private UploadTemplateRequestBody(UploadTemplateRequestBodyBuilder uploadTemplateRequestBodyBuilder)
   {
     templateFileInputStream  = uploadTemplateRequestBodyBuilder.getTemplateFileInputStream();
   }
